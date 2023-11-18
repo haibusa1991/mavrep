@@ -1,0 +1,13 @@
+package com.personal.mavrep.rest;
+
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+
+@SpringBootApplication
+public class MavrepApplication {
+
+    public static void main(String[] args) {
+        SpringApplication.run(MavrepApplication.class, args);
+    }
+
+}
