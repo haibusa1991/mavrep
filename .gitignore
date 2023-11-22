@@ -1,2 +1,6 @@
 /.idea/
 /target/
+/api/target/
+/core/target/
+/persistence/target/
+/rest/target/

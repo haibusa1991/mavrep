@@ -17,6 +17,12 @@
             <artifactId>api</artifactId>
             <version>${revision}</version>
         </dependency>
+
+        <dependency>
+            <groupId>${project.parent.groupId}</groupId>
+            <artifactId>persistence</artifactId>
+            <version>${revision}</version>
+        </dependency>
     </dependencies>
 
 </project>
