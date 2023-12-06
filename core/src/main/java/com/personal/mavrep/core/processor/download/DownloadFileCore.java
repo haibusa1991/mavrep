@@ -1,7 +1,7 @@
-package com.personal.mavrep.core.processor.file;
+package com.personal.mavrep.core.processor.download;
 
-import com.personal.mavrep.api.exceptions.FileNotFoundException;
-import com.personal.mavrep.api.exceptions.MavrepException;
+import com.personal.mavrep.api.errors.ApiError;
+import com.personal.mavrep.api.errors.FileNotFoundError;
 import com.personal.mavrep.api.operations.file.download.DownloadFileInput;
 import com.personal.mavrep.api.operations.file.download.DownloadFileOperation;
 import com.personal.mavrep.api.operations.file.download.DownloadFileResult;
@@ -22,11 +22,11 @@ public class DownloadFileCore implements DownloadFileOperation {
     private final FileHandler fileHandler;
 
     @Override
-    public Either<? extends MavrepException, DownloadFileResult> process(DownloadFileInput input) {
+    public Either<ApiError, DownloadFileResult> process(DownloadFileInput input) {
         Optional<Artefact> artefactOptional = this.artefactRepository.findByUri(input.getUri());
 
         if (artefactOptional.isEmpty()) {
-            return Either.left(new FileNotFoundException());
+            return Either.left(new FileNotFoundError());
         }
 
         Artefact artefact = artefactOptional.get();
@@ -35,7 +35,7 @@ public class DownloadFileCore implements DownloadFileOperation {
         try {
             content = this.fileHandler.readFile(artefact.getUri(), artefact.getFilename());
         } catch (ReadException e) {
-            return Either.left(new FileNotFoundException());
+            return Either.left(new FileNotFoundError());
         }
 
         DownloadFileResult result = DownloadFileResult
