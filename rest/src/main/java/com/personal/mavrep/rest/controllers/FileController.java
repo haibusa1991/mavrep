@@ -15,13 +15,14 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
-@RestController
+@Controller
 @RequiredArgsConstructor
 public class FileController extends BaseController {
     private final UploadFileOperation uploadFile;
-    private final DownloadFileOperation downloadFile;
+//    private final DownloadFileOperation downloadFile;
 
     //TODO: replace "/mvn" with real repo name
     @GetMapping(path = "/mvn/**", produces = MediaType.APPLICATION_OCTET_STREAM_VALUE)

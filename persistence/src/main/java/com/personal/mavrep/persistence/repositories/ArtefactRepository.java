@@ -8,8 +8,6 @@ import java.util.UUID;
 
 public interface ArtefactRepository extends JpaRepository<Artefact, UUID> {
 
-    Optional<Artefact> findByNameAndVersion(String name, String version);
-
     Optional<Artefact> findByUri(String uri);
 
 }

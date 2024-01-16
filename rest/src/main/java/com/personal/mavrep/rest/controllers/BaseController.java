@@ -21,6 +21,6 @@ public abstract class BaseController {
                     .build();
         }
 
-        return new ResponseEntity<>(processorResult.get(), HttpStatus.OK);
+        return new ResponseEntity<>(processorResult.get(), HttpStatus.NO_CONTENT);
     }
 }

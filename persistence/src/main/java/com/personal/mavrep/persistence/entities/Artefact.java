@@ -14,11 +14,9 @@ import java.util.UUID;
 public class Artefact {
 
     @Builder
-    public Artefact(String name, String version, String filename, String uri) {
-        this.name = name;
-        this.version = version;
-        this.filename = filename;
+    public Artefact(String uri, String filename) {
         this.uri = uri;
+        this.filename = filename;
         this.timestamp = LocalDateTime.now();
     }
 
@@ -26,14 +24,9 @@ public class Artefact {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    private String name;
-
-    private String version;
-
-    @Setter
-    private String filename;
-
     private String uri;
+
+    private String filename;
 
     private LocalDateTime timestamp;
 

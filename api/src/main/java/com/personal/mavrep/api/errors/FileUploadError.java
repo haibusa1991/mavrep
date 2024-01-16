@@ -2,10 +2,15 @@ package com.personal.mavrep.api.errors;
 
 import lombok.Builder;
 
-@Builder
 public class FileUploadError extends BaseApiError {
 
+    @Builder
+    public FileUploadError(String message) {
+        super(500, message);
+    }
+
+    @Builder
     public FileUploadError() {
-        super(500,"Cannot upload file");
+        super(500, "Cannot upload file");
     }
 }
