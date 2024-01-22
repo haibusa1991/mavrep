@@ -10,4 +10,5 @@ import lombok.*;
 public class DownloadFileResult implements ProcessorResult {
 
     private byte[] content;
+
 }

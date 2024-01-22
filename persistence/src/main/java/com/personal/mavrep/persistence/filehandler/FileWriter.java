@@ -1,42 +1,46 @@
 package com.personal.mavrep.persistence.filehandler;
 
+import com.personal.mavrep.persistence.errors.PersistenceError;
+import com.personal.mavrep.persistence.errors.WriteError;
+import io.vavr.control.Either;
+import io.vavr.control.Try;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.io.FileOutputStream;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.UUID;
 
 @Component
+@RequiredArgsConstructor
 public class FileWriter {
     @Value("${SAVE_LOCATION}")
     private String SAVE_LOCATION;
 
-    public String saveFileToDisk(String filepath, byte[] data) throws WriteException {
+    private final DirectoryManager directoryManager;
 
-        this.createDirectoryStructure(filepath);
-        String filename = this.getRandomFilename();
+    public Either<PersistenceError, String> saveFileToDisk(byte[] data) {
+        return this.directoryManager.getActiveDirectory()
+                .flatMap(activeDirectory -> this.writeFile(activeDirectory, data));
 
-        try (FileOutputStream fileOutputStream = new FileOutputStream(this.SAVE_LOCATION + "/" +filepath + "/" + filename)) {
-            fileOutputStream.write(data);
-            return filename;
-        } catch (Exception e) {
-            throw new WriteException(filename);
-        }
     }
 
-    private Path createDirectoryStructure(String filepath) throws WriteException {
+    private Either<PersistenceError, String> writeFile(String activeDirectory, byte[] data) {
+        String filename = UUID.randomUUID().toString();
 
-        try {
-            return Files.createDirectories(Path.of(this.SAVE_LOCATION, filepath.split("/")));
-        } catch (IOException e) {
-            throw new WriteException(filepath);
-        }
+        return Try.withResources(() -> new FileOutputStream(this.SAVE_LOCATION + "/" + activeDirectory + "/" + filename))
+                .of(fileOutputStream -> {
+                    fileOutputStream.write(data);
+
+                    String persistedFileName = activeDirectory + "/" + filename;
+                    this.directoryManager.updateActiveDirectory(activeDirectory, persistedFileName);
+
+                    return persistedFileName;
+                })
+                .toEither()
+                .mapLeft(throwable -> WriteError.builder().message(throwable.getMessage()).build());
+
     }
 
-    private String getRandomFilename() {
-        return UUID.randomUUID().toString();
-    }
+
 }
