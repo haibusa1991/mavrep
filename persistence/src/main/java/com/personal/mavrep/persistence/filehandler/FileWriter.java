@@ -6,19 +6,14 @@ import io.vavr.control.Either;
 import io.vavr.control.Try;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Component;
 
 import java.io.FileOutputStream;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.Comparator;
-import java.util.List;
 import java.util.UUID;
 
 @Component
 @RequiredArgsConstructor
-public class DataWriter {
+public class FileWriter {
     @Value("${SAVE_LOCATION}")
     private String SAVE_LOCATION;
 

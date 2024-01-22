@@ -24,8 +24,10 @@ public class Artefact {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
+    @Setter
     private String uri;
 
+    @Setter
     private String filename;
 
     private LocalDateTime timestamp;

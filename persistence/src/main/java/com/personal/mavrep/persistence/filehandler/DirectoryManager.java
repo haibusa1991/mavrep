@@ -1,6 +1,8 @@
 package com.personal.mavrep.persistence.filehandler;
 
+import com.personal.mavrep.persistence.errors.Error;
 import com.personal.mavrep.persistence.errors.PersistenceError;
+import com.personal.mavrep.persistence.errors.ReadError;
 import com.personal.mavrep.persistence.errors.WriteError;
 import io.vavr.control.Either;
 import io.vavr.control.Try;
@@ -11,6 +13,7 @@ import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Component;
 
+import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
@@ -86,5 +89,17 @@ public class DirectoryManager {
                 })
                 .toEither()
                 .mapLeft(throwable -> WriteError.builder().message(throwable.getMessage()).build());
+    }
+
+    public Either<PersistenceError, List<Directory>> getAllFiles() {
+        return Try.withResources(() -> Files.list(Path.of(this.SAVE_LOCATION)))
+                .of(files -> files.filter(Files::isDirectory)
+                                .map(dir -> Directory.builder()
+                                        .name(dir.getFileName().toString())
+                                        .content(dir.toFile().list())
+                                        .build())
+                                .toList())
+                .toEither()
+                .mapLeft(throwable -> ReadError.builder().error(Error.READ_ERROR).build());
     }
 }
