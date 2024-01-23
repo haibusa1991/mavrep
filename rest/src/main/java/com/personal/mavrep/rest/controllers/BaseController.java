@@ -22,7 +22,7 @@ public abstract class BaseController {
                     .build();
         }
 
-        return new ResponseEntity<>(processorResult.get(), HttpStatus.NO_CONTENT);
+        return new ResponseEntity<>(processorResult.get(), HttpStatus.OK);
     }
 
     public ResponseEntity<byte[]> handleFile(Either<ApiError, DownloadFileResult> processorResult, HttpServletResponse response) {
