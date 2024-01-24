@@ -24,7 +24,12 @@ public class DownloadFileCore implements DownloadFileOperation {
     public Either<ApiError, DownloadFileResult> process(DownloadFileInput input) {
 
         return this.fileReader.readFile(input.getUri())
-                .map(content -> DownloadFileResult.builder().content(content).build())
+                .map(content -> {
+                    String[] uriElements = input.getUri().split("/");
+                    String filename = uriElements[uriElements.length - 1];
+
+                    return DownloadFileResult.builder().content(content).filename(filename).build();
+                })
                 .mapLeft(error -> Match(error.getError()).of(
                         Case($(Error.READ_ERROR), readError -> ServiceUnavailableError.builder().build()),
                         Case($(Error.FILE_NOT_FOUND_ERROR), readError -> FileNotFoundError.builder().build())));
