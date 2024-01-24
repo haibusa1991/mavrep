@@ -1,4 +1,4 @@
-package com.personal.mavrep.api.operations.user.register;
+package com.personal.mavrep.api.operations.user.requestpassword;
 
 import com.personal.mavrep.api.base.ProcessorResult;
 import lombok.*;
@@ -7,5 +7,5 @@ import lombok.*;
 @Setter(AccessLevel.PRIVATE)
 @Builder
 @AllArgsConstructor
-public class RegisterResult implements ProcessorResult {
+public class RequestPasswordResult implements ProcessorResult {
 }

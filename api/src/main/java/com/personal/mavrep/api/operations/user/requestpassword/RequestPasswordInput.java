@@ -1,4 +1,4 @@
-package com.personal.mavrep.api.operations.user.register;
+package com.personal.mavrep.api.operations.user.requestpassword;
 
 import com.personal.mavrep.api.base.ProcessorInput;
 import jakarta.validation.constraints.Email;
@@ -10,14 +10,11 @@ import org.hibernate.validator.constraints.Length;
 @Setter(AccessLevel.PRIVATE)
 @Builder
 @AllArgsConstructor
-public class RegisterInput implements ProcessorInput {
+public class RequestPasswordInput implements ProcessorInput {
 
     @Email
     @NotNull
     @Length(max = 40)
     private String email;
-
-    @Length(min = 6, max = 400)
-    private String password;
 
 }

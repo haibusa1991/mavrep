@@ -1,4 +1,4 @@
-package com.personal.mavrep.core.processor.upload;
+package com.personal.mavrep.core.processor.file;
 
 import com.personal.mavrep.api.errors.ApiError;
 import com.personal.mavrep.api.errors.FileUploadError;

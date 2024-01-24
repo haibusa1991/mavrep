@@ -1,4 +1,4 @@
-package com.personal.mavrep.api.operations.user.requestpassword;
+package com.personal.mavrep.api.operations.user.resetpassword;
 
 import com.personal.mavrep.api.base.ProcessorInput;
 import jakarta.validation.constraints.Email;
@@ -10,11 +10,14 @@ import org.hibernate.validator.constraints.Length;
 @Setter(AccessLevel.PRIVATE)
 @Builder
 @AllArgsConstructor
-public class RequestPasswordInput implements ProcessorInput {
+public class ResetPasswordInput implements ProcessorInput {
 
-    @Email
+
+    @Length(min = 6, max = 400)
+    private String password;
+
+    @Length(max = 100)
     @NotNull
-    @Length(max = 40)
-    private String email;
+    private String resetToken;
 
 }

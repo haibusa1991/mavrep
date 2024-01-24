@@ -1,37 +1,39 @@
 package com.personal.mavrep.rest.controllers;
 
+import com.personal.mavrep.api.base.ProcessorInput;
+import com.personal.mavrep.api.errors.ApiError;
 import com.personal.mavrep.api.operations.browse.BrowseInput;
-import com.personal.mavrep.api.operations.file.download.DownloadFileInput;
-import com.personal.mavrep.api.operations.file.download.DownloadFileOperation;
-import com.personal.mavrep.api.operations.file.upload.UploadFileInput;
-import com.personal.mavrep.api.operations.file.upload.UploadFileOperation;
-import com.personal.mavrep.core.processor.BrowseCore;
+import com.personal.mavrep.api.operations.user.register.RegisterInput;
+import com.personal.mavrep.core.processor.user.RegisterCore;
+import com.personal.mavrep.core.validator.InputValidator;
 import io.undertow.servlet.spec.HttpServletResponseImpl;
+import io.vavr.control.Either;
 import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.MediaType;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
-@Controller
+@RestController
 @RequiredArgsConstructor
-@RequestMapping("/browse")
-public class BrowserController extends BaseController {
+@RequestMapping("/user")
+public class UserController extends BaseController {
 
-    private final BrowseCore browse;
+    private final InputValidator inputValidator;
+    private final RegisterCore register;
 
-    @GetMapping(path = "/**")
+    @PostMapping(path = "/register")
     @ResponseBody
-    public ResponseEntity<?> get(HttpServletRequest request, HttpServletResponseImpl response) {
+    public ResponseEntity<?> register(@RequestBody RegisterInput input, @Qualifier() HttpServletResponseImpl response) {
 
-        BrowseInput input = BrowseInput
-                .builder()
-                .uri(request.getRequestURI())
-                .build();
+        Either<ApiError, ProcessorInput> validationResult = this.inputValidator.validateInput(input);
+        if (validationResult.isLeft()) {
+            return this.handle(validationResult, response);
+        }
 
-        return this.handle(this.browse.process(input), response);
+        return this.handle(this.register.process(input), response, HttpStatus.CREATED);
     }
 
 }

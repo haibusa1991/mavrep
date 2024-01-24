@@ -1,4 +1,4 @@
-package com.personal.mavrep.api.operations.user.requestpassword;
+package com.personal.mavrep.api.operations.user.resetpassword;
 
 import com.personal.mavrep.api.base.ProcessorResult;
 import lombok.*;
@@ -7,5 +7,5 @@ import lombok.*;
 @Setter(AccessLevel.PRIVATE)
 @Builder
 @AllArgsConstructor
-public class RequestPasswordResult implements ProcessorResult {
+public class ResetPasswordResult implements ProcessorResult {
 }

@@ -1,18 +1,25 @@
 package com.personal.mavrep.rest.interceptors;
 
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
-import org.springframework.web.servlet.HandlerInterceptor;
+import org.springframework.web.filter.OncePerRequestFilter;
+
+import java.io.IOException;
 
 
 @Component
-public class DeploySniffer implements HandlerInterceptor {
+@RequiredArgsConstructor
+public class ReasonPhraseFilter extends OncePerRequestFilter {
 
-    public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) {
+    @Override
+    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
+        System.out.println();
+//        response.sendError(418,"Nipe");
 
-        System.out.printf("%s method for URL: %s%n", request.getMethod(), request.getRequestURI());
-        return true;
+        filterChain.doFilter(request, response);
     }
-
 }

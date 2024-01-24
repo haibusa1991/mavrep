@@ -1,4 +1,4 @@
-package com.personal.mavrep.api.operations.file.upload;
+package com.personal.mavrep.api.operations.user.login;
 
 import com.personal.mavrep.api.base.ProcessorResult;
 import lombok.*;
@@ -7,6 +7,6 @@ import lombok.*;
 @Setter(AccessLevel.PRIVATE)
 @Builder
 @AllArgsConstructor
-public class UploadFileResult implements ProcessorResult {
-
+public class LoginResult implements ProcessorResult {
+    //TODO: returns jwt as header
 }

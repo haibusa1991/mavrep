@@ -1,4 +1,4 @@
-package com.personal.mavrep.core.processor;
+package com.personal.mavrep.core.processor.browse;
 
 import com.personal.mavrep.api.errors.ApiError;
 import com.personal.mavrep.api.errors.ServiceUnavailableError;

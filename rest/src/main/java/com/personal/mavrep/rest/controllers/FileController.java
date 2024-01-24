@@ -4,6 +4,8 @@ import com.personal.mavrep.api.operations.file.download.DownloadFileInput;
 import com.personal.mavrep.api.operations.file.download.DownloadFileOperation;
 import com.personal.mavrep.api.operations.file.upload.UploadFileInput;
 import com.personal.mavrep.api.operations.file.upload.UploadFileOperation;
+import io.undertow.server.HttpServerExchange;
+import io.undertow.servlet.spec.HttpServletResponseImpl;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -21,7 +23,7 @@ public class FileController extends BaseController {
 
     @GetMapping(path = "/**", produces = MediaType.APPLICATION_OCTET_STREAM_VALUE)
     @ResponseBody
-    public ResponseEntity<?> get(HttpServletRequest request, HttpServletResponse response) {
+    public ResponseEntity<?> get(HttpServletRequest request, HttpServletResponseImpl response) {
 
         DownloadFileInput input = DownloadFileInput
                 .builder()
@@ -32,7 +34,7 @@ public class FileController extends BaseController {
     }
 
     @PutMapping(path = "/**")
-    public ResponseEntity<?> put(@RequestBody byte[] content, HttpServletRequest request, HttpServletResponse response) {
+    public ResponseEntity<?> put(@RequestBody byte[] content, HttpServletRequest request, HttpServletResponseImpl response) {
 
         UploadFileInput input = UploadFileInput
                 .builder()

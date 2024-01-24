@@ -1,8 +1,8 @@
-package com.personal.mavrep.api.operations.user.register;
+package com.personal.mavrep.api.operations.user.requestpassword;
 
 
 import com.personal.mavrep.api.base.Processor;
 
-public interface RegisterOperation extends Processor<RegisterResult, RegisterInput> {
+public interface RequestPasswordOperation extends Processor<RequestPasswordResult, RequestPasswordInput> {
 
 }

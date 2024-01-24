@@ -1,8 +1,8 @@
-package com.personal.mavrep.api.operations.file.upload;
+package com.personal.mavrep.api.operations.user.login;
 
 
 import com.personal.mavrep.api.base.Processor;
 
-public interface UploadFileOperation extends Processor<UploadFileResult, UploadFileInput> {
+public interface LoginOperation extends Processor<LoginResult, LoginInput> {
 
 }

@@ -7,6 +7,5 @@ import lombok.*;
 @Setter(AccessLevel.PRIVATE)
 @Builder
 @AllArgsConstructor
-public class LoginResult implements ProcessorResult {
-    //TODO: returns jwt as header
+public class RegisterResult implements ProcessorResult {
 }
