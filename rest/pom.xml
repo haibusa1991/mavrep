@@ -4,7 +4,7 @@
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <groupId>com.personal</groupId>
-        <artifactId>mavrep</artifactId>
+        <artifactId>micro-art</artifactId>
         <version>${revision}</version>
     </parent>
     <artifactId>rest</artifactId>
