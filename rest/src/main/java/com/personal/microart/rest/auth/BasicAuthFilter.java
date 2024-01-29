@@ -8,14 +8,12 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationContext;
 import org.springframework.http.HttpMethod;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.util.AntPathMatcher;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
-import java.util.Optional;
 
 @Component
 @RequiredArgsConstructor
@@ -32,10 +30,15 @@ public class BasicAuthFilter extends OncePerRequestFilter {
             return;
         }
 
-        Optional<UsernamePasswordAuthenticationToken> securityToken = this.filterCore.getSecurityToken(request);
+//        Optional<UsernamePasswordAuthenticationToken> securityToken = this.filterCore.getSecurityToken(request);
 
-        if (securityToken.isPresent()) {
-            SecurityContextHolder.getContext().setAuthentication(securityToken.get());
+//        if (securityToken.isPresent()) {
+//            SecurityContextHolder.getContext().setAuthentication(securityToken.get());
+//            filterChain.doFilter(request, response);
+//            return;
+//        }
+        if (this.filterCore.hasValidCredentials(request)) {
+//            SecurityContextHolder.getContext().setAuthentication(securityToken.get());
             filterChain.doFilter(request, response);
             return;
         }

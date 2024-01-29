@@ -10,6 +10,7 @@ import lombok.*;
 public class UploadFileInput implements ProcessorInput {
 
     private byte[] content;
+    private String authentication;
     private String uri;
 
 }

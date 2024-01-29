@@ -40,6 +40,7 @@ public class FileController extends BaseController {
                 .builder()
                 .uri(request.getRequestURI())
                 .content(content)
+                .authentication(request.getHeader("Authorization"))
                 .build();
 
         return this.handle(this.uploadFile.process(input), response);

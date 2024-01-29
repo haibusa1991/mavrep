@@ -13,11 +13,11 @@ import java.util.UUID;
 @Setter(AccessLevel.PRIVATE)
 @Getter
 @Entity
-@Table(name = "repositories")
-public class Repository {
+@Table(name = "vaults")
+public class Vault {
 
     @Builder
-    public Repository(String name, MicroartUser user) {
+    public Vault(String name, MicroartUser user) {
         this.name = name;
         this.artefacts = new ArrayList<>();
         this.authorizedUsers = Set.of(user);
