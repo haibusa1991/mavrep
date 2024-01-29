@@ -9,11 +9,11 @@
         <version>3.1.5</version>
     </parent>
 
-    <groupId>com.personal</groupId>
-    <artifactId>mavrep</artifactId>
-    <version>${revision}</version>
-    <name>Mavrep</name>
-    <description>Personal maven repository</description>
+        <groupId>com.personal</groupId>
+        <artifactId>micro-art</artifactId>
+        <version>${revision}</version>
+    <name>Micro art</name>
+    <description>Micro maven artifactory</description>
     <packaging>pom</packaging>
 
     <properties>
@@ -26,6 +26,12 @@
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
             <optional>true</optional>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-security</artifactId>
+            <version>3.2.2</version>
         </dependency>
 
     </dependencies>

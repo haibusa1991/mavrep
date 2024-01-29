@@ -4,7 +4,7 @@
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <groupId>com.personal</groupId>
-        <artifactId>mavrep</artifactId>
+        <artifactId>micro-art</artifactId>
         <version>${revision}</version>
     </parent>
     <artifactId>rest</artifactId>
@@ -34,6 +34,12 @@
             <groupId>${project.parent.groupId}</groupId>
             <artifactId>core</artifactId>
             <version>${revision}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springdoc</groupId>
+            <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
+            <version>2.2.0</version>
         </dependency>
     </dependencies>
 

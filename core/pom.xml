@@ -4,7 +4,7 @@
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <groupId>com.personal</groupId>
-        <artifactId>mavrep</artifactId>
+        <artifactId>micro-art</artifactId>
         <version>${revision}</version>
     </parent>
 
@@ -22,6 +22,10 @@
             <groupId>${project.parent.groupId}</groupId>
             <artifactId>persistence</artifactId>
             <version>${revision}</version>
+        </dependency>
+        <dependency>
+            <groupId>jakarta.servlet</groupId>
+            <artifactId>jakarta.servlet-api</artifactId>
         </dependency>
 
     </dependencies>
