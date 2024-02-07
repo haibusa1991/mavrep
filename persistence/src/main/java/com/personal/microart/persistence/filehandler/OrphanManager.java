@@ -13,7 +13,7 @@ import java.util.stream.Collectors;
 
 @Component
 @RequiredArgsConstructor
-public class OrphanManager implements CommandLineRunner {
+public class OrphanManager implements CommandLineRunner { //the name of the manager is 'Grelod the Kind'. FYI
 
     private final ArtefactRepository artefactRepository;
     private final FileDeleter fileDeleter;
@@ -22,6 +22,7 @@ public class OrphanManager implements CommandLineRunner {
     @Override
     public void run(String... args) {
         this.deleteOrphanedFiles();
+        this.deleteOrphanedRecords();
     }
 
     @Scheduled(cron = "0 0 2 * * *")
@@ -33,6 +34,12 @@ public class OrphanManager implements CommandLineRunner {
                 .flatMap(List::stream)
                 .forEach(this.fileDeleter::delete);
     }
+
+    @Scheduled(cron = "0 */10 * * * *")
+    public void deleteOrphanedRecords() {
+        this.artefactRepository.findAllByFilename(null);
+    }
+
 
     private List<String> findOrphans(Directory directory) {
         List<String> filesInDirectory = Arrays.stream(directory.getContent()).collect(Collectors.toList());

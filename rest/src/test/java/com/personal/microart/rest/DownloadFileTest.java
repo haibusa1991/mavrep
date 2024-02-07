@@ -1,10 +1,11 @@
 package com.personal.microart.rest;
 
-import com.personal.microart.api.operations.file.upload.UploadFileInput;
+import com.personal.microart.persistence.entities.Artefact;
 import com.personal.microart.persistence.entities.MicroartUser;
 import com.personal.microart.persistence.entities.Vault;
+import com.personal.microart.persistence.errors.Error;
+import com.personal.microart.persistence.errors.ReadError;
 import com.personal.microart.persistence.filehandler.FileReader;
-import com.personal.microart.persistence.filehandler.FileWriter;
 import com.personal.microart.persistence.repositories.ArtefactRepository;
 import com.personal.microart.persistence.repositories.UserRepository;
 import com.personal.microart.persistence.repositories.VaultRepository;
@@ -14,10 +15,6 @@ import io.vavr.control.Either;
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.Arguments;
-import org.junit.jupiter.params.provider.MethodSource;
-import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.jdbc.EmbeddedDatabaseConnection;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
@@ -26,23 +23,23 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
-import org.springframework.test.web.reactive.server.WebTestClient;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.Random;
-import java.util.stream.Stream;
 
+import static io.vavr.API.$;
+import static io.vavr.API.Case;
+import static io.vavr.Predicates.instanceOf;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @SpringBootTest
@@ -51,13 +48,10 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @ExtendWith(SpringExtension.class)
 @AutoConfigureTestDatabase(connection = EmbeddedDatabaseConnection.H2)
-class UploadFileTest {
+class DownloadFileTest {
 
     @Autowired
     private MockMvc mockMvc;
-
-    @Autowired
-    private WebTestClient webTestClient;
 
     @Autowired
     private UserRepository userRepository;
@@ -67,9 +61,6 @@ class UploadFileTest {
 
     @Autowired
     private ArtefactRepository artefactRepository;
-
-    @MockBean
-    private FileWriter fileWriter;
 
     @MockBean
     private FileReader fileReader;
@@ -82,35 +73,54 @@ class UploadFileTest {
     private final byte[] FILE_CONTENTS = new byte[1024];
 
     private final String EXISTING_EMAIL = "test@test";
-    private final String EXISTING_USERNAME = "test";
+    private final String EXISTING_USERNAME = "testusername";
     private final String EXISTING_PASSWORD = "testpass";
-
     private final String EXISTING_VAULT = "test-vault";
-
-    private final String VALID_CREDENTIALS = this.encodeCredentials(this.EXISTING_USERNAME, this.EXISTING_PASSWORD);
-    private final String INVALID_CREDENTIALS = this.encodeCredentials("invalid", "invalidPass");
-
-    private final MicroartUser EXISTING_USER = MicroartUser
-            .builder()
-            .email(EXISTING_EMAIL)
-            .username(EXISTING_USERNAME)
-            .password(this.passwordEncoder.encode(EXISTING_PASSWORD))
-            .build();
-    private final UploadFileInput VALID_INPUT = UploadFileInput
-            .builder()
-            .uri(String.format("/mvn/%s/%s/com/test/test/0.0.1-SNAPSHOT/mrt-0.0.4-20240125.124348-1.jar", this.EXISTING_USERNAME, this.EXISTING_VAULT))
-            .content(this.FILE_CONTENTS)
-            .authentication(getAuthHeaderValue(this.EXISTING_USERNAME, this.EXISTING_PASSWORD))
-            .build();
+    private final String ARTEFACT_URI = String.format("/mvn/%s/%s/com/test/download/0.0.1-SNAPSHOT/test-12345678.123456-1.jar", this.EXISTING_USERNAME, this.EXISTING_VAULT);
+    private final String NON_EXISTENT_ARTEFACT_URI = String.format("/mvn/%s/%s/com/test/download/0.0.1-SNAPSHOT/readme.md", this.EXISTING_USERNAME, this.EXISTING_VAULT);
 
     @BeforeAll
     public void init() {
+
         new Random().nextBytes(this.FILE_CONTENTS);
     }
 
     @BeforeEach
     public void setup() {
-        this.userRepository.save(this.EXISTING_USER);
+        when(this.fileReader.readFile(any())).thenReturn(Either.right(this.FILE_CONTENTS));
+
+        HttpServerExchange httpServerExchange = mock(HttpServerExchange.class);
+        when(this.exchangeAccessor.getExchange(any())).thenReturn(httpServerExchange);
+        when(httpServerExchange.setReasonPhrase(any(String.class))).thenReturn(httpServerExchange);
+        when(httpServerExchange.getRequestURI()).thenReturn(this.ARTEFACT_URI);
+
+        MicroartUser EXISTING_USER = MicroartUser
+                .builder()
+                .email(EXISTING_EMAIL)
+                .username(EXISTING_USERNAME)
+                .password(this.passwordEncoder.encode(EXISTING_PASSWORD))
+                .build();
+
+        MicroartUser persistedUser = this.userRepository.save(EXISTING_USER);
+
+        Vault vault = Vault
+                .builder()
+                .name(this.EXISTING_VAULT)
+                .user(persistedUser)
+                .build();
+
+        Artefact artefact = Artefact
+                .builder()
+                .uri(this.ARTEFACT_URI)
+                .filename("test-12345678.123456-1.jar")
+                .build();
+
+        Artefact persistedArtefact = this.artefactRepository.save(artefact);
+
+        vault.addUser(persistedUser);
+        vault.addArtefact(persistedArtefact);
+
+        this.vaultRepository.save(vault);
     }
 
     @AfterEach
@@ -133,356 +143,154 @@ class UploadFileTest {
 
     @Test
     @SneakyThrows
-    public void returns403onAnonymousUser() {
-        mockMvc.perform(MockMvcRequestBuilders.post(this.VALID_INPUT.getUri())
-                        .contentType(MediaType.APPLICATION_OCTET_STREAM)
-                        .content(this.VALID_INPUT.getContent()))
-                .andExpect(status().isForbidden());
+    public void downloadsOnAnonymousUserWhenVaultIsPublic() {
+        mockMvc.perform(MockMvcRequestBuilders.get(this.ARTEFACT_URI))
+                .andExpect(status().isOk())
+                .andExpect(content().bytes(this.FILE_CONTENTS));
     }
 
     @SneakyThrows
     @Test
-    public void returns403onInvalidCredentials() {
-        mockMvc.perform(MockMvcRequestBuilders.post(this.VALID_INPUT.getUri())
-                        .contentType(MediaType.APPLICATION_OCTET_STREAM)
-                        .content(this.VALID_INPUT.getContent())
-                        .header(HttpHeaders.AUTHORIZATION, this.INVALID_CREDENTIALS))
-                .andExpect(status().isForbidden());
+    public void downloadsOnAuthenticatedUserWhenVaultIsPublic() {
+        mockMvc.perform(MockMvcRequestBuilders
+                        .get(this.ARTEFACT_URI)
+                        .header(HttpHeaders.AUTHORIZATION, this.getAuthHeaderValue(this.EXISTING_USERNAME, this.EXISTING_PASSWORD)))
+                .andExpect(status().isOk())
+                .andExpect(content().bytes(this.FILE_CONTENTS));
     }
 
     @SneakyThrows
     @Test
-    public void returns403onUploadInExistingUnauthorizedVault() {
-        String EMAIL = "new@new";
-        String USER_NAME = "newUser";
-        String PASSWORD = "newPassword";
-        String URI = String.format("/mvn/%s/%s/com/test/test/0.0.1-SNAPSHOT/new-20240125.124348-1.jar", this.EXISTING_USERNAME, this.EXISTING_VAULT);
+    public void downloadsOnNonExistentUserWhenVaultIsPublic() {
+        mockMvc.perform(MockMvcRequestBuilders
+                        .get(this.ARTEFACT_URI)
+                        .header(HttpHeaders.AUTHORIZATION, this.getAuthHeaderValue("non-existent", "non-existent")))
+                .andExpect(status().isOk())
+                .andExpect(content().bytes(this.FILE_CONTENTS));
+    }
 
-        when(this.fileWriter.saveFileToDisk(any())).thenReturn(Either.right("dummy written file"));
-
-        HttpServerExchange httpServerExchange = mock(HttpServerExchange.class);
-        when(this.exchangeAccessor.getExchange(any())).thenReturn(httpServerExchange);
-        when(httpServerExchange.setReasonPhrase(any(String.class))).thenReturn(httpServerExchange);
-        when(httpServerExchange.getRequestURI()).thenReturn(URI);
-
-        Vault vault = Vault
-                .builder()
-                .user(this.userRepository.findByUsername(this.EXISTING_USERNAME).get())
-                .name(this.EXISTING_VAULT)
-                .build();
-
-        this.vaultRepository.save(vault);
+    @SneakyThrows
+    @Test
+    public void downloadsOnAuthorizedUserWhenVaultIsPrivate() {
+        String newEmail = "new@test";
+        String newUsername = "newusername";
+        String newPassword = "newpass";
 
         MicroartUser newUser = MicroartUser
                 .builder()
-                .email(EMAIL)
-                .username(USER_NAME)
-                .password(this.passwordEncoder.encode(PASSWORD))
-                .build();
-
-        this.userRepository.save(newUser);
-
-
-        MvcResult mvcResult = mockMvc.perform(MockMvcRequestBuilders
-                .put(URI)
-                .contentType(MediaType.APPLICATION_OCTET_STREAM)
-                .content(this.VALID_INPUT.getContent())
-                .header(HttpHeaders.AUTHORIZATION, this.getAuthHeaderValue(USER_NAME, PASSWORD))
-        ).andReturn();
-
-        Assertions.assertEquals(403, mvcResult.getResponse().getStatus());
-        Assertions.assertEquals(1, this.vaultRepository.count());
-        Assertions.assertEquals(2, this.userRepository.count());
-        Assertions.assertEquals(0, this.artefactRepository.count());
-    }
-
-    @SneakyThrows
-    @Test
-    public void returns200onUploadInExistingAuthorizedVault() {
-        String EMAIL = "new@new";
-        String USER_NAME = "newUser";
-        String PASSWORD = "newPassword";
-        String URI = String.format("/mvn/%s/%s/com/test/test/0.0.1-SNAPSHOT/new-20240125.124348-1.jar", this.EXISTING_USERNAME, this.EXISTING_VAULT);
-
-        when(this.fileWriter.saveFileToDisk(any())).thenReturn(Either.right("dummy written file"));
-
-        Vault vault = Vault
-                .builder()
-                .user(this.userRepository.findByUsername(this.EXISTING_USERNAME).get())
-                .name(this.EXISTING_VAULT)
-                .build();
-
-        MicroartUser newUser = MicroartUser
-                .builder()
-                .email(EMAIL)
-                .username(USER_NAME)
-                .password(this.passwordEncoder.encode(PASSWORD))
+                .email(newEmail)
+                .username(newUsername)
+                .password(this.passwordEncoder.encode(newPassword))
                 .build();
 
         MicroartUser persistedNewUser = this.userRepository.save(newUser);
-        vault.addUser(persistedNewUser);
-        this.vaultRepository.save(vault);
 
-        MvcResult mvcResult = mockMvc.perform(MockMvcRequestBuilders
-                .put(URI)
-                .contentType(MediaType.APPLICATION_OCTET_STREAM)
-                .content(this.VALID_INPUT.getContent())
-                .header(HttpHeaders.AUTHORIZATION, this.getAuthHeaderValue(USER_NAME, PASSWORD))
-        ).andReturn();
+        this.vaultRepository.findVaultByName(this.EXISTING_VAULT)
+                .ifPresent(vault -> {
+                    vault.isPublic(false);
+                    vault.addUser(persistedNewUser);
+                    this.vaultRepository.save(vault);
+                });
 
-        Assertions.assertEquals(200, mvcResult.getResponse().getStatus());
-        Assertions.assertEquals(1, this.vaultRepository.count());
-        Assertions.assertEquals(2, this.userRepository.count());
-        Assertions.assertEquals(1, this.artefactRepository.count());
+        mockMvc.perform(MockMvcRequestBuilders
+                        .get(this.ARTEFACT_URI)
+                        .header(HttpHeaders.AUTHORIZATION, this.getAuthHeaderValue(this.EXISTING_USERNAME, this.EXISTING_PASSWORD)))
+                .andExpect(status().isOk())
+                .andExpect(content().bytes(this.FILE_CONTENTS));
+
+        mockMvc.perform(MockMvcRequestBuilders
+                        .get(this.ARTEFACT_URI)
+                        .header(HttpHeaders.AUTHORIZATION, this.getAuthHeaderValue(newUsername, newPassword)))
+                .andExpect(status().isOk())
+                .andExpect(content().bytes(this.FILE_CONTENTS));
     }
 
     @SneakyThrows
     @Test
-    public void returns200onUploadInExistingOwnVault() {
-        String URI = String.format("/mvn/%s/%s/com/test/test/0.0.1-SNAPSHOT/new-20240125.124348-1.jar", this.EXISTING_USERNAME, this.EXISTING_VAULT);
+    public void returns404WhenAnonymousUserDownloadsNonExistentFile() {
+        when(this.fileReader.readFile(any())).thenReturn(Either.left(ReadError.builder().error(Error.FILE_NOT_FOUND_ERROR).build()));
 
-        when(this.fileWriter.saveFileToDisk(any())).thenReturn(Either.right("dummy written file"));
-
-        Vault vault = Vault
-                .builder()
-                .user(this.userRepository.findByUsername(this.EXISTING_USERNAME).get())
-                .name(this.EXISTING_VAULT)
-                .build();
-
-        this.vaultRepository.save(vault);
-
-        MvcResult mvcResult = mockMvc.perform(MockMvcRequestBuilders
-                .put(URI)
-                .contentType(MediaType.APPLICATION_OCTET_STREAM)
-                .content(this.VALID_INPUT.getContent())
-                .header(HttpHeaders.AUTHORIZATION, this.getAuthHeaderValue(this.EXISTING_USERNAME, this.EXISTING_PASSWORD))
-        ).andReturn();
-
-        Assertions.assertEquals(200, mvcResult.getResponse().getStatus());
-        Assertions.assertEquals(1, this.vaultRepository.count());
-        Assertions.assertEquals(1, this.userRepository.count());
-        Assertions.assertEquals(1, this.artefactRepository.count());
+        mockMvc.perform(MockMvcRequestBuilders.get(this.NON_EXISTENT_ARTEFACT_URI))
+                .andExpect(status().isNotFound());
     }
 
     @SneakyThrows
     @Test
-    public void returns200onUploadInNonExistingOwnVault() {
-        String URI = String.format("/mvn/%s/%s/com/test/test/0.0.1-SNAPSHOT/new-20240125.124348-1.jar", this.EXISTING_USERNAME, this.EXISTING_VAULT);
+    public void returns404WhenAuthenticatedUserDownloadsNonExistentFile() {
+        when(this.fileReader.readFile(any())).thenReturn(Either.left(ReadError.builder().error(Error.FILE_NOT_FOUND_ERROR).build()));
 
-        when(this.fileWriter.saveFileToDisk(any())).thenReturn(Either.right("dummy written file"));
-
-        MvcResult mvcResult = mockMvc.perform(MockMvcRequestBuilders
-                .put(URI)
-                .contentType(MediaType.APPLICATION_OCTET_STREAM)
-                .content(this.VALID_INPUT.getContent())
-                .header(HttpHeaders.AUTHORIZATION, this.getAuthHeaderValue(this.EXISTING_USERNAME, this.EXISTING_PASSWORD))
-        ).andReturn();
-
-        Assertions.assertEquals(200, mvcResult.getResponse().getStatus());
-        Assertions.assertEquals(1, this.vaultRepository.count());
-        Assertions.assertEquals(1, this.userRepository.count());
-        Assertions.assertEquals(1, this.artefactRepository.count());
+        mockMvc.perform(MockMvcRequestBuilders
+                        .get(this.NON_EXISTENT_ARTEFACT_URI)
+                        .header(HttpHeaders.AUTHORIZATION, this.getAuthHeaderValue(this.EXISTING_USERNAME, this.EXISTING_PASSWORD)))
+                .andExpect(status().isNotFound());
     }
 
     @SneakyThrows
     @Test
-    public void returns403onUploadInNonExistingNotOwnVault() {
-        String EMAIL = "new@new";
-        String USER_NAME = "newUser";
-        String PASSWORD = "newPassword";
-        String URI = String.format("/mvn/%s/%s/com/test/test/0.0.1-SNAPSHOT/new-20240125.124348-1.jar", this.EXISTING_USERNAME, this.EXISTING_VAULT);
+    public void returns404WhenNonExistentUserDownloadsNonExistentFile() {
+        when(this.fileReader.readFile(any())).thenReturn(Either.left(ReadError.builder().error(Error.FILE_NOT_FOUND_ERROR).build()));
 
-        when(this.fileWriter.saveFileToDisk(any())).thenReturn(Either.right("dummy written file"));
+        mockMvc.perform(MockMvcRequestBuilders
+                        .get(this.NON_EXISTENT_ARTEFACT_URI)
+                        .header(HttpHeaders.AUTHORIZATION, this.getAuthHeaderValue("non-existent", "non-existent")))
+                .andExpect(status().isNotFound());
+    }
 
-        HttpServerExchange httpServerExchange = mock(HttpServerExchange.class);
-        when(this.exchangeAccessor.getExchange(any())).thenReturn(httpServerExchange);
-        when(httpServerExchange.setReasonPhrase(any(String.class))).thenReturn(httpServerExchange);
-        when(httpServerExchange.getRequestURI()).thenReturn(URI);
+    @SneakyThrows
+    @Test
+    public void returns404WhenAnonymousUserDownloadsFromPrivateVault() {
+        this.vaultRepository.findVaultByName(this.EXISTING_VAULT)
+                .ifPresent(vault -> {
+                    vault.isPublic(false);
+                    this.vaultRepository.save(vault);
+                });
+
+        mockMvc.perform(MockMvcRequestBuilders.get(this.ARTEFACT_URI))
+                .andExpect(status().isNotFound());
+    }
+
+    @SneakyThrows
+    @Test
+    public void returns404WhenAuthenticatedUnauthorizedUserDownloadsFromPrivateVault() {
+        String newEmail = "new@test";
+        String newUsername = "newusername";
+        String newPassword = "newpass";
 
         MicroartUser newUser = MicroartUser
                 .builder()
-                .email(EMAIL)
-                .username(USER_NAME)
-                .password(this.passwordEncoder.encode(PASSWORD))
+                .email(newEmail)
+                .username(newUsername)
+                .password(this.passwordEncoder.encode(newPassword))
                 .build();
 
         this.userRepository.save(newUser);
 
-        MvcResult mvcResult = mockMvc.perform(MockMvcRequestBuilders
-                .put(URI)
-                .contentType(MediaType.APPLICATION_OCTET_STREAM)
-                .content(this.VALID_INPUT.getContent())
-                .header(HttpHeaders.AUTHORIZATION, this.getAuthHeaderValue(USER_NAME, PASSWORD))
-        ).andReturn();
+        this.vaultRepository.findVaultByName(this.EXISTING_VAULT)
+                .ifPresent(vault -> {
+                    vault.isPublic(false);
+                    this.vaultRepository.save(vault);
+                });
 
-        Assertions.assertEquals(403, mvcResult.getResponse().getStatus());
-        Assertions.assertEquals(0, this.vaultRepository.count());
-        Assertions.assertEquals(2, this.userRepository.count());
-        Assertions.assertEquals(0, this.artefactRepository.count());
-    }
-
-    @SneakyThrows
-    @Test
-    public void returns400onDuplicateFilenameWhenUploadingInExistingOwnVault() {
-        String URI = String.format("/mvn/%s/%s/com/test/test/0.0.1-SNAPSHOT/new-20240125.124348-1.jar", this.EXISTING_USERNAME, this.EXISTING_VAULT);
-        String DUPLICATE_URI = String.format("/mvn/%s/%s/com/test/test/0.0.1-SNAPSHOT/new-20240125.124348-2.jar", this.EXISTING_USERNAME, this.EXISTING_VAULT);
-
-        when(this.fileWriter.saveFileToDisk(any())).thenReturn(Either.right("dummy written file"));
-
-        HttpServerExchange httpServerExchange = mock(HttpServerExchange.class);
-        when(this.exchangeAccessor.getExchange(any())).thenReturn(httpServerExchange);
-        when(httpServerExchange.setReasonPhrase(any(String.class))).thenReturn(httpServerExchange);
-        when(httpServerExchange.getRequestURI()).thenReturn(URI);
-
-        Vault vault = Vault
-                .builder()
-                .user(this.userRepository.findByUsername(this.EXISTING_USERNAME).get())
-                .name(this.EXISTING_VAULT)
-                .build();
-
-        this.vaultRepository.save(vault);
         mockMvc.perform(MockMvcRequestBuilders
-                .put(URI)
-                .contentType(MediaType.APPLICATION_OCTET_STREAM)
-                .content(this.VALID_INPUT.getContent())
-                .header(HttpHeaders.AUTHORIZATION, this.getAuthHeaderValue(this.EXISTING_USERNAME, this.EXISTING_PASSWORD)));
-
-        MvcResult mvcResult = mockMvc.perform(MockMvcRequestBuilders
-                .put(DUPLICATE_URI)
-                .contentType(MediaType.APPLICATION_OCTET_STREAM)
-                .content(this.VALID_INPUT.getContent())
-                .header(HttpHeaders.AUTHORIZATION, this.getAuthHeaderValue(this.EXISTING_USERNAME, this.EXISTING_PASSWORD))
-        ).andReturn();
-
-        Assertions.assertEquals(400, mvcResult.getResponse().getStatus());
-        Assertions.assertEquals(1, this.vaultRepository.count());
-        Assertions.assertEquals(1, this.userRepository.count());
-        Assertions.assertEquals(1, this.artefactRepository.count());
+                        .get(this.ARTEFACT_URI)
+                        .header(HttpHeaders.AUTHORIZATION, this.getAuthHeaderValue(newUsername, newPassword)))
+                .andExpect(status().isNotFound());
     }
 
     @SneakyThrows
     @Test
-    public void returns200onReplacingFileWhenUploadingInExistingOwnVault() {
-        String URI = String.format("/mvn/%s/%s/com/test/test/0.0.1-SNAPSHOT/new-20240125.124348-1.jar", this.EXISTING_USERNAME, this.EXISTING_VAULT);
+    public void returns404WhenNonExistentUserDownloadsFromPrivateVault() {
+        this.vaultRepository.findVaultByName(this.EXISTING_VAULT)
+                .ifPresent(vault -> {
+                    vault.isPublic(false);
+                    this.vaultRepository.save(vault);
+                });
 
-        when(this.fileWriter.saveFileToDisk(any())).thenReturn(Either.right("dummy written file"));
-
-        HttpServerExchange httpServerExchange = mock(HttpServerExchange.class);
-        when(this.exchangeAccessor.getExchange(any())).thenReturn(httpServerExchange);
-        when(httpServerExchange.setReasonPhrase(any(String.class))).thenReturn(httpServerExchange);
-        when(httpServerExchange.getRequestURI()).thenReturn(URI);
-
-        Vault vault = Vault
-                .builder()
-                .user(this.userRepository.findByUsername(this.EXISTING_USERNAME).get())
-                .name(this.EXISTING_VAULT)
-                .build();
-
-        this.vaultRepository.save(vault);
-
-      mockMvc.perform(MockMvcRequestBuilders
-                        .put(URI)
-                        .contentType(MediaType.APPLICATION_OCTET_STREAM)
-                        .content(this.VALID_INPUT.getContent())
-                        .header(HttpHeaders.AUTHORIZATION, this.getAuthHeaderValue(this.EXISTING_USERNAME, this.EXISTING_PASSWORD)));
-
-        MvcResult mvcResult = mockMvc.perform(MockMvcRequestBuilders
-                .put(URI)
-                .contentType(MediaType.APPLICATION_OCTET_STREAM)
-                .content(this.VALID_INPUT.getContent())
-                .header(HttpHeaders.AUTHORIZATION, this.getAuthHeaderValue(this.EXISTING_USERNAME, this.EXISTING_PASSWORD))
-        ).andReturn();
-
-        Assertions.assertEquals(200, mvcResult.getResponse().getStatus());
-        Assertions.assertEquals(1, this.vaultRepository.count());
-        Assertions.assertEquals(1, this.userRepository.count());
-        Assertions.assertEquals(1, this.artefactRepository.count());
+        mockMvc.perform(MockMvcRequestBuilders
+                        .get(this.ARTEFACT_URI)
+                        .header(HttpHeaders.AUTHORIZATION, this.getAuthHeaderValue("non-existent", "non-existent")))
+                .andExpect(status().isNotFound());
     }
 
 
-    private static Stream<String> returns400onInvalidFilenameWhenUploadingInExistingOwnVault() {
-        return Stream.of(
-                "ABCDEFGH.123456-1.xyz",
-                "ABCDEFG.123456-1.xyz",
-                "ABCDEFGHI.123456-1.xyz",
-                "12345678.ABCDEF-1.xyz",
-                "12345678.ABCDEFG-1.xyz",
-                "12345678.ABCDE-1.xyz",
-                "ABCDEFGH.ABCDEF-1.xyz",
-                "ABCDEFG.ABCDE-1.xyz",
-                "ABCDEFGHI.ABCDEFG-1.xyz",
-                "ABCDEFGH.ABCDEFG-1.xyz",
-                "ABCDEFGG.ABCDEF-1.xyz",
-                "ABCDEFGH.ABCDE-1.xyz",
-                "!@#$%^&*.098765-1.xyz",
-
-                "ABCDEFGH.123456-1-javadoc.xyz",
-                "ABCDEFG.123456-1-JAVADOC.xyz",
-                "ABCDEFGHI.123456-1-javadoc.xyz",
-                "12345678.ABCDEF-1-javadoc.xyz",
-                "12345678.ABCDEFG-1-javadoc.xyz",
-                "12345678.ABCDE-1-javadoc.xyz",
-                "ABCDEFGH.ABCDEF-1-javadoc.xyz",
-                "ABCDEFG.ABCDE-1-javadoc.xyz",
-                "ABCDEFGHI.ABCDEFG-1-javadoc.xyz",
-                "ABCDEFGH.ABCDEFG-1-javadoc.xyz",
-                "ABCDEFGG.ABCDEF-1-javadoc.xyz",
-                "ABCDEFGH.ABCDE-1-javadoc.xyz",
-                "!@#$%^&*.098765-1-javadoc.xyz",
-
-                "ABCDEFGH.123456-1-sources.xyz",
-                "ABCDEFG.123456-1-sources.xyz",
-                "ABCDEFGHI.123456-1-SOURCES.xyz",
-                "12345678.ABCDEF-1-sources.xyz",
-                "12345678.ABCDEFG-1-sources.xyz",
-                "12345678.ABCDE-1-sources.xyz",
-                "ABCDEFGH.ABCDEF-1-sources.xyz",
-                "ABCDEFG.ABCDE-1-sources.xyz",
-                "ABCDEFGHI.ABCDEFG-1-sources.xyz",
-                "ABCDEFGH.ABCDEFG-1-sources.xyz",
-                "ABCDEFGG.ABCDEF-1-sources.xyz",
-                "ABCDEFGH.ABCDE-1-sources.xyz",
-                "!@#$%^&*.098765-1-sources.xyz",
-
-                "README.md",
-                "LICENSE.txt",
-                "pom.xml",
-                "index.html",
-                "data.csv"
-        );
-    }
-
-    @SneakyThrows
-    @ParameterizedTest()
-    @MethodSource
-    public void returns400onInvalidFilenameWhenUploadingInExistingOwnVault(String value) {
-        String URI = String.format("/mvn/%s/%s/com/test/test/0.0.1-SNAPSHOT/%s", this.EXISTING_USERNAME, this.EXISTING_VAULT, value);
-
-        when(this.fileWriter.saveFileToDisk(any())).thenReturn(Either.right("dummy written file"));
-
-        HttpServerExchange httpServerExchange = mock(HttpServerExchange.class);
-        when(this.exchangeAccessor.getExchange(any())).thenReturn(httpServerExchange);
-        when(httpServerExchange.setReasonPhrase(any(String.class))).thenReturn(httpServerExchange);
-        when(httpServerExchange.getRequestURI()).thenReturn(URI);
-
-        Vault vault = Vault
-                .builder()
-                .user(this.userRepository.findByUsername(this.EXISTING_USERNAME).get())
-                .name(this.EXISTING_VAULT)
-                .build();
-
-        this.vaultRepository.save(vault);
-
-        MvcResult mvcResult = mockMvc.perform(MockMvcRequestBuilders
-                .put(URI)
-                .contentType(MediaType.APPLICATION_OCTET_STREAM)
-                .content(this.VALID_INPUT.getContent())
-                .header(HttpHeaders.AUTHORIZATION, this.getAuthHeaderValue(this.EXISTING_USERNAME, this.EXISTING_PASSWORD))
-        ).andReturn();
-
-        Assertions.assertEquals(400, mvcResult.getResponse().getStatus());
-        Assertions.assertEquals(1, this.vaultRepository.count());
-        Assertions.assertEquals(1, this.userRepository.count());
-        Assertions.assertEquals(0, this.artefactRepository.count());
-    }
 }

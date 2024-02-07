@@ -6,10 +6,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
-import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
-import java.util.Base64;
-import java.util.Optional;
 
 @Component
 @RequiredArgsConstructor
@@ -28,11 +25,11 @@ public class BasicAuthFilterCore {
                 .orElse(false);
     }
 
-    private Boolean isOwnRepo(String uri, String username) { //TODO: check if user has rights to manage target repo
-        String[] uriElements = Arrays.stream(uri.split("/"))
-                .filter(element -> !element.isBlank())
-                .toArray(String[]::new);
-
-        return uriElements[1].equalsIgnoreCase(username);
-    }
+//    private Boolean isOwnRepo(String uri, String username) { //TODO: check if user has rights to manage target repo
+//        String[] uriElements = Arrays.stream(uri.split("/"))
+//                .filter(element -> !element.isBlank())
+//                .toArray(String[]::new);
+//
+//        return uriElements[1].equalsIgnoreCase(username);
+//    }
 }

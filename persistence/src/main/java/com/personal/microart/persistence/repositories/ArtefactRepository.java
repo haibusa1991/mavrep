@@ -10,11 +10,13 @@ import java.util.UUID;
 
 public interface ArtefactRepository extends JpaRepository<Artefact, UUID> {
 
-    Optional<Artefact> findByUri(String uri);
+    Optional<Artefact> findArtefactByUri(String uri);
 
     void deleteArtefactByUri(String uri);
 
     List<Artefact> findArtefactByFilenameStartingWith(String startsWith);
 
     Set<Artefact> findArtefactByUriStartingWith(String uri);
+
+    Set<Artefact> findAllByFilename(String filename);
 }

@@ -4,10 +4,10 @@ import com.personal.microart.api.base.ProcessorInput;
 import lombok.*;
 
 @Getter
-@Setter(AccessLevel.PRIVATE)
 @Builder
 @AllArgsConstructor
 public class DownloadFileInput implements ProcessorInput {
 
+    private String authentication;
     private String uri;
 }

@@ -12,15 +12,15 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 
 @Component
-public class ExchangeUnwrapper {
+public class ExchangeAccessor {
     @SneakyThrows
     public HttpServerExchange getExchange(HttpServletResponse response) {
-        Field field = response.getClass().getDeclaredField("request");
-        field.setAccessible(true);
+        Field requestField = response.getClass().getDeclaredField("request");
+        requestField.setAccessible(true);
 
-        ServletRequest request = ((ServletRequestWrapper) field.get(response)).getRequest();
-        Method method = request.getClass().getMethod("getRequest");
+        ServletRequest servletRequest = ((ServletRequestWrapper) requestField.get(response)).getRequest();
+        Method getRequestMethod = servletRequest.getClass().getMethod("getRequest");
 
-        return ((HttpServletRequestImpl) method.invoke(request)).getExchange();
+        return ((HttpServletRequestImpl) getRequestMethod.invoke(servletRequest)).getExchange();
     }
 }

@@ -24,28 +24,17 @@ public class BasicAuthFilter extends OncePerRequestFilter {
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
+        Boolean isWhitelisted = this.isWhitelisted(request.getMethod(), request.getRequestURI());
+        Boolean hasValidCredentials = this.filterCore.hasValidCredentials(request);
 
-        if (this.isWhitelisted(request.getMethod(), request.getRequestURI())) { //whitelisted = filter does not apply
-            filterChain.doFilter(request, response);
+        if (!isWhitelisted && !hasValidCredentials) {
+            response.setContentType("text/html");
+            response.setStatus(403);
+            response.setCharacterEncoding("UTF-8");
             return;
         }
 
-//        Optional<UsernamePasswordAuthenticationToken> securityToken = this.filterCore.getSecurityToken(request);
-
-//        if (securityToken.isPresent()) {
-//            SecurityContextHolder.getContext().setAuthentication(securityToken.get());
-//            filterChain.doFilter(request, response);
-//            return;
-//        }
-        if (this.filterCore.hasValidCredentials(request)) {
-//            SecurityContextHolder.getContext().setAuthentication(securityToken.get());
-            filterChain.doFilter(request, response);
-            return;
-        }
-
-        response.setContentType("text/html");
-        response.setStatus(403);
-        response.setCharacterEncoding("UTF-8");
+        filterChain.doFilter(request, response);
     }
 
     private Boolean isWhitelisted(String method, String uri) {
