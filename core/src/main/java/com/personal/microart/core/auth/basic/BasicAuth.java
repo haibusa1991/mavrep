@@ -1,4 +1,4 @@
-package com.personal.microart.core.auth;
+package com.personal.microart.core.auth.basic;
 
 import lombok.Builder;
 import lombok.Getter;

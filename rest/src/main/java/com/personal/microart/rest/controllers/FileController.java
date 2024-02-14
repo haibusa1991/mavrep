@@ -11,6 +11,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -23,7 +24,7 @@ public class FileController extends BaseController {
 
     @PostConstruct
     private void setExchangeAccessor() {
-        this.setExchangeAccessor(exchangeAccessor);
+        super.setExchangeAccessor(exchangeAccessor);
     }
 
     @GetMapping(path = "/**", produces = MediaType.APPLICATION_OCTET_STREAM_VALUE)
@@ -48,7 +49,7 @@ public class FileController extends BaseController {
                 .content(content)
                 .authentication(request.getHeader(HttpHeaders.AUTHORIZATION))
                 .build();
-
+        System.out.println(SecurityContextHolder.getContext().getAuthentication().toString());
         return this.handle(this.uploadFile.process(input), response);
     }
 }

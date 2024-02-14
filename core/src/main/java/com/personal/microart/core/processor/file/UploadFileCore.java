@@ -4,14 +4,13 @@ import com.personal.microart.api.errors.*;
 import com.personal.microart.api.operations.file.upload.UploadFileInput;
 import com.personal.microart.api.operations.file.upload.UploadFileOperation;
 import com.personal.microart.api.operations.file.upload.UploadFileResult;
-import com.personal.microart.core.auth.BasicAuthConverter;
+import com.personal.microart.core.auth.basic.BasicAuth;
 import com.personal.microart.core.processor.UriProcessor;
 import com.personal.microart.persistence.entities.Artefact;
 import com.personal.microart.persistence.entities.MicroartUser;
 import com.personal.microart.persistence.entities.Vault;
 import com.personal.microart.persistence.filehandler.FileWriter;
 import com.personal.microart.persistence.repositories.ArtefactRepository;
-import com.personal.microart.persistence.repositories.UserRepository;
 import com.personal.microart.persistence.repositories.VaultRepository;
 import io.vavr.API;
 import io.vavr.Tuple;
@@ -20,9 +19,12 @@ import io.vavr.control.Either;
 import io.vavr.control.Try;
 import lombok.RequiredArgsConstructor;
 import org.hibernate.JDBCException;
+import org.springframework.core.convert.ConversionService;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Optional;
 import java.util.UUID;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
@@ -38,9 +40,8 @@ public class UploadFileCore implements UploadFileOperation {
     private final FileWriter fileWriter;
     private final ArtefactRepository artefactRepository;
     private final VaultRepository vaultRepository;
-    private final UserRepository userRepository;
-    private final BasicAuthConverter authConverter;
     private final UriProcessor uriProcessor;
+    private final ConversionService conversionService;
 
 
     @Override
@@ -58,13 +59,11 @@ public class UploadFileCore implements UploadFileOperation {
         String vaultName = this.uriProcessor.getVaultName(input.getUri());
 
         return Try.of(() -> {
-                    String username = this.authConverter
-                            .getBasicAuth(input.getAuthentication())
-                            .getUsername();
 
-                    MicroartUser user = this.userRepository
-                            .findByUsername(username)
-                            .orElseThrow(IllegalArgumentException::new);
+                    MicroartUser user = (MicroartUser) SecurityContextHolder
+                            .getContext()
+                            .getAuthentication()
+                            .getDetails();
 
                     Vault vault = this.vaultRepository
                             .findVaultByName(vaultName)
@@ -72,7 +71,7 @@ public class UploadFileCore implements UploadFileOperation {
                                     ? this.vaultRepository.save(Vault.builder().name(vaultName).user(user).build())
                                     : Vault.builder().name(UUID.randomUUID().toString()).build());
 
-                    if (!canUpdateVault(vault,username)) {
+                    if (!canUpdateVault(vault)) {
                         throw new IllegalArgumentException();
                     }
 
@@ -168,15 +167,19 @@ public class UploadFileCore implements UploadFileOperation {
 
     private Boolean canCreateVault(UploadFileInput input) {
         String uriUsername = this.uriProcessor.getUsername(input.getUri());
-        String authUsername = this.authConverter.getBasicAuth(input.getAuthentication()).getUsername();
+        String authUsername = this.conversionService.convert(Optional.of(input.getAuthentication()), BasicAuth.class).getUsername();
 
         return uriUsername.equalsIgnoreCase(authUsername);
     }
 
-    private boolean canUpdateVault(Vault vault, String username) {
-        return vault.getAuthorizedUsers()
-                .contains(this.userRepository
-                        .findByUsername(username)
-                        .orElse(MicroartUser.builder().build()));
+    private boolean canUpdateVault(Vault vault) {
+        MicroartUser currentUser = (MicroartUser) SecurityContextHolder
+                .getContext()
+                .getAuthentication()
+                .getDetails();
+
+        return vault
+                .getAuthorizedUsers()
+                .contains(currentUser);
     }
 }

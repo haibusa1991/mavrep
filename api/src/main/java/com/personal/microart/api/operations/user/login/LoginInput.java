@@ -10,6 +10,7 @@ import org.hibernate.validator.constraints.Length;
 @Setter(AccessLevel.PRIVATE)
 @Builder
 @AllArgsConstructor
+@NoArgsConstructor
 public class LoginInput implements ProcessorInput {
 
     @Email
@@ -17,7 +18,7 @@ public class LoginInput implements ProcessorInput {
     @Length(max = 40)
     private String email;
 
-    @Length(min = 6, max = 400)
+    @Length(min = 6, max = 40)
     private String password;
 
 }

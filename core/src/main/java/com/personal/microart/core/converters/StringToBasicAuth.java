@@ -1,5 +1,7 @@
-package com.personal.microart.core.auth;
+package com.personal.microart.core.converters;
 
+import com.personal.microart.core.auth.basic.BasicAuth;
+import org.springframework.core.convert.converter.Converter;
 import org.springframework.stereotype.Component;
 
 import java.nio.charset.StandardCharsets;
@@ -8,11 +10,11 @@ import java.util.Base64;
 import java.util.Optional;
 
 @Component
-public class BasicAuthConverter {
+public class StringToBasicAuth implements Converter<Optional<String>, BasicAuth> {
 
-    public BasicAuth getBasicAuth(String basicAuthHeader) {
-
-        String[] credentials = Optional.ofNullable(basicAuthHeader)
+    @Override
+    public BasicAuth convert(Optional<String> source) {
+        String[] credentials = source
                 .map(rawHeader -> rawHeader.substring(6))
                 .map(rawToken -> Base64.getDecoder().decode(rawToken))
                 .map(tokenBytes -> new String(tokenBytes, StandardCharsets.UTF_8))

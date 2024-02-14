@@ -10,4 +10,5 @@ import lombok.*;
 public class BrowseInput implements ProcessorInput {
 
     private String uri;
+    private String jwt;
 }

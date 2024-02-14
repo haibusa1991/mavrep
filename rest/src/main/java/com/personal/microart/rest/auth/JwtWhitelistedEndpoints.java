@@ -8,16 +8,16 @@ import java.util.List;
 import java.util.Map;
 
 @Component
-@Getter
-public class WhitelistedEndpoints {
+public class JwtWhitelistedEndpoints {
 
     private final List<String> whitelistedGet = List.of("/mvn/**");
     private final List<String> whitelistedPost = List.of("/user/**");
-    private final List<String> whitelistedPut = List.of();
+    private final List<String> whitelistedPut = List.of("/mvn/**");
     private final List<String> whitelistedDelete = List.of();
     private final List<String> whitelistedPatch = List.of();
 
-    public Map<HttpMethod, List<String>> whitelistedEndpoints = Map.of(
+    @Getter
+    private final Map<HttpMethod, List<String>> whitelistedEndpoints = Map.of(
             HttpMethod.GET, whitelistedGet,
             HttpMethod.POST, whitelistedPost,
             HttpMethod.PUT, whitelistedPut,

@@ -6,8 +6,7 @@ import com.personal.microart.api.errors.ServiceUnavailableError;
 import com.personal.microart.api.operations.file.download.DownloadFileInput;
 import com.personal.microart.api.operations.file.download.DownloadFileOperation;
 import com.personal.microart.api.operations.file.download.DownloadFileResult;
-import com.personal.microart.core.auth.BasicAuth;
-import com.personal.microart.core.auth.BasicAuthConverter;
+import com.personal.microart.core.auth.basic.BasicAuth;
 import com.personal.microart.core.processor.UriProcessor;
 import com.personal.microart.persistence.entities.MicroartUser;
 import com.personal.microart.persistence.entities.Vault;
@@ -19,8 +18,11 @@ import io.vavr.control.Either;
 import io.vavr.control.Try;
 import lombok.RequiredArgsConstructor;
 import org.hibernate.JDBCException;
+import org.springframework.core.convert.ConversionService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
+
+import java.util.Optional;
 
 import static io.vavr.API.*;
 import static io.vavr.Predicates.instanceOf;
@@ -31,10 +33,10 @@ import static io.vavr.Predicates.instanceOf;
 public class DownloadFileCore implements DownloadFileOperation {
     private final FileReader fileReader;
     private final UserRepository userRepository;
-    private final BasicAuthConverter authConverter;
     private final PasswordEncoder passwordEncoder;
     private final UriProcessor uriProcessor;
     private final VaultRepository vaultRepository;
+    private final ConversionService conversionService;
 
     @Override
     public Either<ApiError, DownloadFileResult> process(DownloadFileInput input) {
@@ -56,7 +58,8 @@ public class DownloadFileCore implements DownloadFileOperation {
                         return input;
                     }
 
-                    BasicAuth auth = this.authConverter.getBasicAuth(input.getAuthentication());
+                    BasicAuth auth = this.conversionService.convert(Optional.ofNullable(input.getAuthentication()), BasicAuth.class);
+
                     MicroartUser user = this.userRepository
                             .findByUsername(auth.getUsername())
                             .orElseThrow(IllegalArgumentException::new);
