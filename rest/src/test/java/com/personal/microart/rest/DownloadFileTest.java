@@ -238,7 +238,7 @@ class DownloadFileTest {
 
     @SneakyThrows
     @Test
-    public void returns404WhenAnonymousUserDownloadsFromPrivateVault() {
+    public void returns403WhenAnonymousUserDownloadsFromPrivateVault() {
         this.vaultRepository.findVaultByName(this.EXISTING_VAULT)
                 .ifPresent(vault -> {
                     vault.isPublic(false);
@@ -246,12 +246,12 @@ class DownloadFileTest {
                 });
 
         mockMvc.perform(MockMvcRequestBuilders.get(this.ARTEFACT_URI))
-                .andExpect(status().isNotFound());
+                .andExpect(status().isForbidden());
     }
 
     @SneakyThrows
     @Test
-    public void returns404WhenAuthenticatedUnauthorizedUserDownloadsFromPrivateVault() {
+    public void returns403WhenAuthenticatedUnauthorizedUserDownloadsFromPrivateVault() {
         String newEmail = "new@test";
         String newUsername = "newusername";
         String newPassword = "newpass";
@@ -274,12 +274,12 @@ class DownloadFileTest {
         mockMvc.perform(MockMvcRequestBuilders
                         .get(this.ARTEFACT_URI)
                         .header(HttpHeaders.AUTHORIZATION, this.getAuthHeaderValue(newUsername, newPassword)))
-                .andExpect(status().isNotFound());
+                .andExpect(status().isForbidden());
     }
 
     @SneakyThrows
     @Test
-    public void returns404WhenNonExistentUserDownloadsFromPrivateVault() {
+    public void returns403WhenNonExistentUserDownloadsFromPrivateVault() {
         this.vaultRepository.findVaultByName(this.EXISTING_VAULT)
                 .ifPresent(vault -> {
                     vault.isPublic(false);
@@ -289,7 +289,7 @@ class DownloadFileTest {
         mockMvc.perform(MockMvcRequestBuilders
                         .get(this.ARTEFACT_URI)
                         .header(HttpHeaders.AUTHORIZATION, this.getAuthHeaderValue("non-existent", "non-existent")))
-                .andExpect(status().isNotFound());
+                .andExpect(status().isForbidden());
     }
 
 

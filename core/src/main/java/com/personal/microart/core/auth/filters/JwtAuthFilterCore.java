@@ -9,12 +9,15 @@ import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationContext;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
@@ -31,7 +34,7 @@ public class JwtAuthFilterCore extends BaseFilterCore {
         super.setContext(this.context);
     }
 
-    @Override
+//    @Override
     public Boolean hasValidCredentials(HttpServletRequest request) {
         if(Optional.ofNullable(request.getHeader(HttpHeaders.AUTHORIZATION)).isEmpty()
                 || !request.getHeader(HttpHeaders.AUTHORIZATION).startsWith("Bearer")) {
@@ -62,5 +65,10 @@ public class JwtAuthFilterCore extends BaseFilterCore {
         authToken.setDetails(user);
 
         return authToken;
+    }
+
+    @Override
+    public Boolean isAuthorized(HttpServletRequest request) {
+        return true;
     }
 }

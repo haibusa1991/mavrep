@@ -14,13 +14,13 @@ public abstract class BaseFilterCore implements FilterCore {
     @Setter
     private ApplicationContext context;
 
-    public Boolean isWhitelisted(HttpServletRequest request, Map<HttpMethod, List<String>> whitelistedEndpoints) {
+    public Boolean isFiltered(HttpServletRequest request, Map<HttpMethod, List<String>> filteredEndpoints) {
         String method = request.getMethod();
         String uri = request.getRequestURI();
 
-        return whitelistedEndpoints
+        return filteredEndpoints
                 .get(HttpMethod.valueOf(method.toUpperCase()))
                 .stream()
-                .anyMatch(whitelistedUri -> context.getBean(AntPathMatcher.class).match(whitelistedUri, uri));
+                .anyMatch(filteredUri -> context.getBean(AntPathMatcher.class).match(filteredUri, uri));
     }
 }

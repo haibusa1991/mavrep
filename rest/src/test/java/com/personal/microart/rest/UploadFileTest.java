@@ -128,7 +128,7 @@ class UploadFileTest {
     @Test
     @SneakyThrows
     public void returns403onAnonymousUser() {
-        mockMvc.perform(MockMvcRequestBuilders.post(this.VALID_INPUT.getUri())
+        mockMvc.perform(MockMvcRequestBuilders.put(this.VALID_INPUT.getUri())
                         .contentType(MediaType.APPLICATION_OCTET_STREAM)
                         .content(this.VALID_INPUT.getContent()))
                 .andExpect(status().isForbidden());
@@ -137,7 +137,7 @@ class UploadFileTest {
     @SneakyThrows
     @Test
     public void returns403onInvalidCredentials() {
-        mockMvc.perform(MockMvcRequestBuilders.post(this.VALID_INPUT.getUri())
+        mockMvc.perform(MockMvcRequestBuilders.put(this.VALID_INPUT.getUri())
                         .contentType(MediaType.APPLICATION_OCTET_STREAM)
                         .content(this.VALID_INPUT.getContent())
                         .header(HttpHeaders.AUTHORIZATION, this.getAuthHeaderValue("invalid", "invalidPass")))
@@ -165,6 +165,7 @@ class UploadFileTest {
                 .name(this.EXISTING_VAULT)
                 .build();
 
+        vault.isPublic(false);
         this.vaultRepository.save(vault);
 
         MicroartUser newUser = MicroartUser
@@ -374,11 +375,11 @@ class UploadFileTest {
 
         this.vaultRepository.save(vault);
 
-      mockMvc.perform(MockMvcRequestBuilders
-                        .put(URI)
-                        .contentType(MediaType.APPLICATION_OCTET_STREAM)
-                        .content(this.VALID_INPUT.getContent())
-                        .header(HttpHeaders.AUTHORIZATION, this.getAuthHeaderValue(this.EXISTING_USERNAME, this.EXISTING_PASSWORD)));
+        mockMvc.perform(MockMvcRequestBuilders
+                .put(URI)
+                .contentType(MediaType.APPLICATION_OCTET_STREAM)
+                .content(this.VALID_INPUT.getContent())
+                .header(HttpHeaders.AUTHORIZATION, this.getAuthHeaderValue(this.EXISTING_USERNAME, this.EXISTING_PASSWORD)));
 
         MvcResult mvcResult = mockMvc.perform(MockMvcRequestBuilders
                 .put(URI)

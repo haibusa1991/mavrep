@@ -14,16 +14,20 @@ public class StringToBasicAuth implements Converter<Optional<String>, BasicAuth>
 
     @Override
     public BasicAuth convert(Optional<String> source) {
-        String[] credentials = source
+
+        return source
                 .map(rawHeader -> rawHeader.substring(6))
                 .map(rawToken -> Base64.getDecoder().decode(rawToken))
                 .map(tokenBytes -> new String(tokenBytes, StandardCharsets.UTF_8))
                 .map(token -> token.split(":"))
-                .orElse(new String[]{"", ""});
+                .map(this::buildToken)
+                .orElse(null);
+    }
 
+    private BasicAuth buildToken(String[] tokenElements) {
         return BasicAuth.builder()
-                .username(credentials[0])
-                .password(String.join("", Arrays.copyOfRange(credentials, 1, credentials.length)))
+                .username(tokenElements[0])
+                .password(String.join("", Arrays.copyOfRange(tokenElements, 1, tokenElements.length)))
                 .build();
     }
 }

@@ -47,8 +47,7 @@ public class UploadFileCore implements UploadFileOperation {
     @Override
     public Either<ApiError, UploadFileResult> process(UploadFileInput input) {
 
-        return this.validatePermissions(input)
-                .flatMap(this::validateFilename)
+        return this.validateFilename(input)
                 .flatMap(this::createFileRecord)
                 .flatMap(this::writeFile)
                 .flatMap(this::updateFilename);
@@ -114,6 +113,10 @@ public class UploadFileCore implements UploadFileOperation {
 
     private Either<ApiError, UploadFileInput> createFileRecord(UploadFileInput input) {
         String vaultName = this.uriProcessor.getVaultName(input.getUri());
+        MicroartUser user = (MicroartUser) SecurityContextHolder
+                .getContext()
+                .getAuthentication()
+                .getDetails();
 
         Artefact artefact = Artefact.builder()
                 .uri(input.getUri())
@@ -122,7 +125,7 @@ public class UploadFileCore implements UploadFileOperation {
         return Try.of(() -> {
                     Vault vault = this.vaultRepository
                             .findVaultByName(vaultName)
-                            .orElseThrow(IllegalArgumentException::new);
+                            .orElseGet(() -> this.vaultRepository.save(Vault.builder().name(vaultName).user(user).build()));
 
                     this.artefactRepository
                             .findArtefactByUri(input.getUri())

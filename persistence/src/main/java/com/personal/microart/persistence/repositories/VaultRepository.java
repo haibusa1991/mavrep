@@ -9,4 +9,6 @@ import java.util.UUID;
 public interface VaultRepository extends JpaRepository<Vault, UUID> {
 
     Optional<Vault> findVaultByName(String name);
+
+    Boolean existsByName(String name);
 }

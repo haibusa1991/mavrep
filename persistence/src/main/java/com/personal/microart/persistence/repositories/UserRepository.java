@@ -9,5 +9,8 @@ import java.util.UUID;
 public interface UserRepository extends JpaRepository<MicroartUser, UUID> {
 
     Optional<MicroartUser> findByEmail(String email);
+
     Optional<MicroartUser> findByUsername(String username);
+
+    Boolean existsByUsername(String username);
 }

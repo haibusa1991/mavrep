@@ -23,6 +23,16 @@ public class Vault {
         this.isPublic = true;
     }
 
+    public static Vault empty () {
+        Vault vault = new Vault();
+        vault.name = "";
+        vault.artefacts = new ArrayList<>();
+        vault.authorizedUsers = new HashSet<>();
+        vault.isPublic = true;
+
+        return vault;
+    }
+
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;

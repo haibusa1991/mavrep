@@ -19,14 +19,12 @@ import java.nio.charset.StandardCharsets;
 @RequiredArgsConstructor
 public class BasicAuthFilter extends OncePerRequestFilter {
     private final BasicAuthFilterCore filterCore;
-    private final BasicAuthWhitelistedEndpoints endpoints;
+    private final BasicAuthFilteredEndpoints endpoints;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
-        Boolean isWhitelisted = filterCore.isWhitelisted(request, this.endpoints.getWhitelistedEndpoints());
-        Boolean hasValidCredentials = this.filterCore.hasValidCredentials(request);
 
-        if (!isWhitelisted && !hasValidCredentials) {
+        if (this.filterCore.isFiltered(request,endpoints.getFilteredEndpoints()) && !this.filterCore.isAuthorized(request)) {
             System.out.println("BasicAuthFilter denied access"); //TODO: replace with logger
             response.setContentType(MediaType.TEXT_HTML_VALUE);
             response.setStatus(HttpStatus.FORBIDDEN.value());
@@ -34,11 +32,7 @@ public class BasicAuthFilter extends OncePerRequestFilter {
             return;
         }
 
-        if (!isWhitelisted) {
-            SecurityContextHolder.getContext().setAuthentication(this.filterCore.getAuthentication(request));
-            System.out.println();
-        }
-
+        SecurityContextHolder.getContext().setAuthentication(this.filterCore.getAuthentication(request));
         filterChain.doFilter(request, response);
     }
 }
