@@ -1,17 +1,22 @@
 package com.personal.microart.rest;
 
 import com.jayway.jsonpath.JsonPath;
+import com.personal.microart.core.auth.jwt.JwtProvider;
 import com.personal.microart.persistence.entities.Artefact;
 import com.personal.microart.persistence.entities.MicroartUser;
 import com.personal.microart.persistence.entities.Vault;
+import com.personal.microart.persistence.filehandler.FileReader;
 import com.personal.microart.persistence.filehandler.FileWriter;
 import com.personal.microart.persistence.repositories.ArtefactRepository;
 import com.personal.microart.persistence.repositories.UserRepository;
 import com.personal.microart.persistence.repositories.VaultRepository;
 import com.personal.microart.rest.controllers.ExchangeAccessor;
+import io.vavr.control.Either;
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.jdbc.EmbeddedDatabaseConnection;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
@@ -19,23 +24,22 @@ import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWeb
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.core.convert.ConversionService;
+import org.springframework.http.HttpHeaders;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
-import org.springframework.test.web.reactive.server.WebTestClient;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
-import java.nio.charset.StandardCharsets;
-import java.util.Base64;
 import java.util.List;
 import java.util.Random;
 
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -57,13 +61,16 @@ class BrowseTest {
     @Autowired
     private ArtefactRepository artefactRepository;
 
-    @MockBean
-    private FileWriter fileWriter;
+    @Autowired
+    private ConversionService conversionService;
 
     @MockBean
-    private ExchangeAccessor exchangeAccessor;
+    private FileReader fileReader;
 
     private final PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+
+    @Autowired
+    private JwtProvider jwtProvider;
 
     private final byte[] FILE_CONTENTS = new byte[1024];
 
@@ -75,11 +82,13 @@ class BrowseTest {
     private final String EXISTING_USERNAME_2 = "test-user2";
     private final String EXISTING_PASSWORD_2 = "testpass2";
 
+    private final String EXISTING_EMAIL_3 = "test3@test";
+    private final String EXISTING_USERNAME_3 = "test-user3";
+    private final String EXISTING_PASSWORD_3 = "testpass3";
+
     private final String EXISTING_VAULT_1 = "test-vault-1";
     private final String EXISTING_VAULT_2 = "test-vault-2";
     private final String EXISTING_VAULT_3 = "test-vault-3";
-
-    private final String INVALID_CREDENTIALS = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6IjJAMiIsInVzZXJuYW1lIjoicGFjZWsyIiwiaWF0IjoxNzA3NDgxODA1LCJleHAiOjE3MTAwNzM4MDV9.CKY1ZxOfrgO7ftpDR8d6PW9EmInOmnWgoYRZaoqlB8k";
 
     private final MicroartUser EXISTING_USER_1 = MicroartUser
             .builder()
@@ -95,6 +104,13 @@ class BrowseTest {
             .password(this.passwordEncoder.encode(EXISTING_PASSWORD_2))
             .build();
 
+    private final MicroartUser EXISTING_USER_3 = MicroartUser
+            .builder()
+            .email(EXISTING_EMAIL_3)
+            .username(EXISTING_USERNAME_3)
+            .password(this.passwordEncoder.encode(EXISTING_PASSWORD_3))
+            .build();
+
     @BeforeAll
     public void init() {
         new Random().nextBytes(this.FILE_CONTENTS);
@@ -104,6 +120,7 @@ class BrowseTest {
     public void setup() {
         this.userRepository.save(this.EXISTING_USER_1);
         this.userRepository.save(this.EXISTING_USER_2);
+        this.userRepository.save(this.EXISTING_USER_3);
 
         Vault vault1 = Vault
                 .builder()
@@ -144,7 +161,7 @@ class BrowseTest {
 
         Artefact artefact3 = this.artefactRepository.save(Artefact
                 .builder()
-                .uri(String.format("/mvn/%s/%s/com/test/download/0.0.1-SNAPSHOT/test-12345678.123456-1.jar", this.EXISTING_USERNAME_1, this.EXISTING_VAULT_3))
+                .uri(String.format("/mvn/%s/%s/com/test/download/0.0.1-SNAPSHOT/test-12345678.123456-1.jar", this.EXISTING_USERNAME_2, this.EXISTING_VAULT_3))
                 .filename("file3")
                 .build());
 
@@ -160,20 +177,44 @@ class BrowseTest {
         this.userRepository.deleteAll();
     }
 
-    private String encodeCredentials(String username, String rawPassword) {
-        return Base64
-                .getEncoder()
-                .encodeToString((String.format("%s:%s", username, rawPassword).getBytes(StandardCharsets.UTF_8)))
-                .replace("=", "");
-    }
-
-    private String getAuthHeaderValue(String username, String rawPassword) {
-        return "Basic " + this.encodeCredentials(username, rawPassword);
+    private String getAuthHeaderValue(MicroartUser user) {
+        return "Bearer " + this.conversionService.convert(this.jwtProvider.getJwt(user), String.class);
     }
 
     @SneakyThrows
     @Test
     public void returnsListOfAllPublicVaultsWithCorrectUrisWhenUserIsAnonymous() {
+        this.mockMvc.perform(get("/browse"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content.length()").value(1))
+                .andExpect(jsonPath("$.content[0].name").value(this.EXISTING_USERNAME_1))
+                .andExpect(jsonPath("$.content[0].uri").value(String.format("/browse/%s", this.EXISTING_USERNAME_1)));
+    }
+
+    @SneakyThrows
+    @ParameterizedTest
+    @ValueSource(strings = {
+            "",
+            "Bearer",
+            "Bearer ",
+            "Bearer asdfsdfsdfs",
+            "Basic",
+            "Basic ",
+            "Basic asdfs"
+    })
+    public void returnsListOfAllPublicVaultsWithCorrectUrisWhenAuthHeaderInvalid(String headerValue) { //non-existing = invalid credentials
+        this.mockMvc.perform(get("/browse")
+                        .header(HttpHeaders.AUTHORIZATION, headerValue))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content.length()").value(1))
+                .andExpect(jsonPath("$.content[0].name").value(this.EXISTING_USERNAME_1))
+                .andExpect(jsonPath("$.content[0].uri").value(String.format("/browse/%s", this.EXISTING_USERNAME_1)));
+    }
+
+    @SneakyThrows
+    @Test
+    public void exploresPublicVaultAndDownloadsFileWhenUserIsAnonymous() {
+        when(this.fileReader.readFile(any())).thenReturn(Either.right(this.FILE_CONTENTS));
 
         MvcResult result;
         String uri = "/browse";
@@ -191,45 +232,151 @@ class BrowseTest {
 
             Assertions.assertEquals(uriElements[uriElements.length - 1], name);
             Assertions.assertEquals((Integer) 1, JsonPath.read(result.getResponse().getContentAsString(), "$.content.length()"));
-            Assertions.assertEquals(result.getRequest().getRequestURI() + "/" + name, uri);
+
+            //if this is the bottom of the repository, replace 'browse' with 'mvn' and download the file. Kinda ugly.
+            if (uri.contains("/browse"))
+                Assertions.assertEquals(result.getRequest().getRequestURI() + "/" + name, uri);
+            else {
+                Assertions.assertEquals(result.getRequest().getRequestURI().replace("/browse", "/mvn") + "/" + name, uri);
+                mockMvc.perform(MockMvcRequestBuilders
+                                .get(uri))
+                        .andExpect(status().isOk())
+                        .andExpect(content().bytes(this.FILE_CONTENTS));
+            }
         }
-
-        System.out.println();
-
     }
 
-    @Test
-    public void returnsListOfAllPublicVaultsWithCorrectUrisWhenUserIsNonExistent() { //non-existing = invalid credentials
-//TODO: Implement me
-    }
-
-    @Test
-    public void exploresPublicVaultAndDownloadsFileWhenUserIsAnonymous() {
-//TODO: Implement me
-    }
-
+    @SneakyThrows
     @Test
     public void exploresPublicVaultAndDownloadsFileWhenUserIsNonExisting() {
-//TODO: Implement me
+        when(this.fileReader.readFile(any())).thenReturn(Either.right(this.FILE_CONTENTS));
+
+        MvcResult result;
+        String uri = "/browse";
+
+        while (!uri.contains("/mvn")) {
+            result = this.mockMvc.perform(get(uri)
+                            .header(HttpHeaders.AUTHORIZATION, this.getAuthHeaderValue(MicroartUser.empty())))
+                    .andExpect(status().isOk())
+                    .andReturn();
+
+            String content = result.getResponse().getContentAsString();
+
+            uri = JsonPath.parse(content).read("$.content[0].uri");
+            String name = JsonPath.parse(content).read("$.content[0].name");
+            String[] uriElements = uri.split("/");
+
+            Assertions.assertEquals(uriElements[uriElements.length - 1], name);
+            Assertions.assertEquals((Integer) 1, JsonPath.read(result.getResponse().getContentAsString(), "$.content.length()"));
+
+            //if this is the bottom of the repository, replace 'browse' with 'mvn' and download the file. Kinda ugly.
+            if (uri.contains("/browse"))
+                Assertions.assertEquals(result.getRequest().getRequestURI() + "/" + name, uri);
+            else {
+                Assertions.assertEquals(result.getRequest().getRequestURI().replace("/browse", "/mvn") + "/" + name, uri);
+                mockMvc.perform(MockMvcRequestBuilders
+                                .get(uri))
+                        .andExpect(status().isOk())
+                        .andExpect(content().bytes(this.FILE_CONTENTS));
+            }
+        }
     }
 
+    @SneakyThrows
     @Test
     public void returnsListOfAllPublicVaultsWithCorrectUrisWhenUserIsAuthorized() {
-//TODO: Implement me
+        this.mockMvc.perform(get("/browse")
+                        .header(HttpHeaders.AUTHORIZATION, this.getAuthHeaderValue(this.EXISTING_USER_3)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content.length()").value(1))
+                .andExpect(jsonPath("$.content[0].name").value(this.EXISTING_USERNAME_1))
+                .andExpect(jsonPath("$.content[0].uri").value(String.format("/browse/%s", this.EXISTING_USERNAME_1)));
     }
 
     @Test
+    @SneakyThrows
     public void exploresPublicVaultAndDownloadsFileWhenUserIsAuthorized() {
-//TODO: Implement me
+        when(this.fileReader.readFile(any())).thenReturn(Either.right(this.FILE_CONTENTS));
+
+        MvcResult result;
+        String uri = "/browse";
+
+        while (!uri.contains("/mvn")) {
+            result = this.mockMvc.perform(get(uri)
+                            .header(HttpHeaders.AUTHORIZATION, this.getAuthHeaderValue(this.EXISTING_USER_3)))
+                    .andExpect(status().isOk())
+                    .andReturn();
+
+            String content = result.getResponse().getContentAsString();
+
+            uri = JsonPath.parse(content).read("$.content[0].uri");
+            String name = JsonPath.parse(content).read("$.content[0].name");
+            String[] uriElements = uri.split("/");
+
+            Assertions.assertEquals(uriElements[uriElements.length - 1], name);
+            Assertions.assertEquals((Integer) 1, JsonPath.read(result.getResponse().getContentAsString(), "$.content.length()"));
+
+            //if this is the bottom of the repository, replace 'browse' with 'mvn' and download the file. Kinda ugly.
+            if (uri.contains("/browse"))
+                Assertions.assertEquals(result.getRequest().getRequestURI() + "/" + name, uri);
+            else {
+                Assertions.assertEquals(result.getRequest().getRequestURI().replace("/browse", "/mvn") + "/" + name, uri);
+                mockMvc.perform(get(uri)
+                                .header(HttpHeaders.AUTHORIZATION, this.getAuthHeaderValue(this.EXISTING_USER_3)))
+                        .andExpect(status().isOk())
+                        .andExpect(content().bytes(this.FILE_CONTENTS));
+            }
+        }
     }
 
-    @Test
+    @SneakyThrows
+    @Test()
     public void returnsListOfAllPublicAndAuthorizedVaultsWithCorrectUrisWhenUserIsAuthorized() {
-//TODO: Implement me
+        this.mockMvc.perform(get("/browse")
+                        .header(HttpHeaders.AUTHORIZATION, this.getAuthHeaderValue(this.EXISTING_USER_2)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content.length()").value(2))
+                .andExpect(jsonPath("$.content[0].name").value(this.EXISTING_USERNAME_1))
+                .andExpect(jsonPath("$.content[0].uri").value(String.format("/browse/%s", this.EXISTING_USERNAME_1)))
+                .andExpect(jsonPath("$.content[1].name").value(this.EXISTING_USERNAME_2))
+                .andExpect(jsonPath("$.content[1].uri").value(String.format("/browse/%s", this.EXISTING_USERNAME_2)));
     }
 
+    @SneakyThrows
     @Test
     public void exploresPublicAndAuthorizedVaultAndDownloadsFileWhenUserIsAuthorized() {
-//TODO: Implement me
+        when(this.fileReader.readFile(any())).thenReturn(Either.right(this.FILE_CONTENTS));
+        this.vaultRepository.delete(this.vaultRepository.findVaultByName(this.EXISTING_VAULT_1).get());
+        this.vaultRepository.delete(this.vaultRepository.findVaultByName(this.EXISTING_VAULT_3).get());
+
+        MvcResult result;
+        String uri = "/browse";
+
+        while (!uri.contains("/mvn")) {
+            result = this.mockMvc.perform(get(uri)
+                            .header(HttpHeaders.AUTHORIZATION, this.getAuthHeaderValue(this.EXISTING_USER_2)))
+                    .andExpect(status().isOk())
+                    .andReturn();
+
+            String content = result.getResponse().getContentAsString();
+
+            uri = JsonPath.parse(content).read("$.content[0].uri");
+            String name = JsonPath.parse(content).read("$.content[0].name");
+            String[] uriElements = uri.split("/");
+
+            Assertions.assertEquals(uriElements[uriElements.length - 1], name);
+            Assertions.assertEquals((Integer) 1, JsonPath.read(result.getResponse().getContentAsString(), "$.content.length()"));
+
+            //if this is the bottom of the repository, replace 'browse' with 'mvn' and download the file. Kinda ugly.
+            if (uri.contains("/browse"))
+                Assertions.assertEquals(result.getRequest().getRequestURI() + "/" + name, uri);
+            else {
+                Assertions.assertEquals(result.getRequest().getRequestURI().replace("/browse", "/mvn") + "/" + name, uri);
+                mockMvc.perform(get(uri)
+                                .header(HttpHeaders.AUTHORIZATION, this.getAuthHeaderValue(this.EXISTING_USER_3)))
+                        .andExpect(status().isOk())
+                        .andExpect(content().bytes(this.FILE_CONTENTS));
+            }
+        }
     }
 }

@@ -15,6 +15,8 @@ import io.vavr.control.Either;
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.jdbc.EmbeddedDatabaseConnection;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
@@ -149,6 +151,24 @@ class DownloadFileTest {
                 .andExpect(content().bytes(this.FILE_CONTENTS));
     }
 
+    @ParameterizedTest
+    @SneakyThrows
+    @ValueSource(strings = {
+            "",
+            "Basic",
+            "Basic ",
+            "Basic d",
+            "Basic asdffsdgf",
+
+    })
+    public void downloadsWhenVaultIsPublicAndAuthHeaderInvalid(String headerValue) {
+        mockMvc.perform(MockMvcRequestBuilders
+                        .get(this.ARTEFACT_URI)
+                        .header(HttpHeaders.AUTHORIZATION, headerValue))
+                .andExpect(status().isOk())
+                .andExpect(content().bytes(this.FILE_CONTENTS));
+    }
+
     @SneakyThrows
     @Test
     public void downloadsOnAuthenticatedUserWhenVaultIsPublic() {
@@ -211,6 +231,25 @@ class DownloadFileTest {
         when(this.fileReader.readFile(any())).thenReturn(Either.left(ReadError.builder().error(Error.FILE_NOT_FOUND_ERROR).build()));
 
         mockMvc.perform(MockMvcRequestBuilders.get(this.NON_EXISTENT_ARTEFACT_URI))
+                .andExpect(status().isNotFound());
+    }
+
+
+    @SneakyThrows
+    @ParameterizedTest
+    @ValueSource(strings = {
+            "",
+            "Basic",
+            "Basic ",
+            "Basic d",
+            "Basic asdffsdgf"
+    })
+    public void returns404WhenDownloadsNonExistentFileAndAuthHeaderIsInvalid(String headerValue) {
+        when(this.fileReader.readFile(any())).thenReturn(Either.left(ReadError.builder().error(Error.FILE_NOT_FOUND_ERROR).build()));
+
+        mockMvc.perform(MockMvcRequestBuilders
+                        .get(this.NON_EXISTENT_ARTEFACT_URI)
+                        .header(HttpHeaders.AUTHORIZATION, headerValue))
                 .andExpect(status().isNotFound());
     }
 

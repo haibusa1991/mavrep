@@ -19,4 +19,5 @@ public interface ArtefactRepository extends JpaRepository<Artefact, UUID> {
     Set<Artefact> findArtefactByUriStartingWith(String uri);
 
     Set<Artefact> findAllByFilename(String filename);
+
 }

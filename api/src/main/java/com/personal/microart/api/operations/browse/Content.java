@@ -6,7 +6,7 @@ import lombok.*;
 @Setter(AccessLevel.PRIVATE)
 @Builder
 @AllArgsConstructor
-public class Content {
+public class Content implements Comparable<Content> {
     private String name;
     private String uri;
 
@@ -26,5 +26,10 @@ public class Content {
         int result = name.hashCode();
         result = 31 * result + uri.hashCode();
         return result;
+    }
+
+    @Override
+    public int compareTo(Content o) {
+        return this.name.compareTo(o.name);
     }
 }

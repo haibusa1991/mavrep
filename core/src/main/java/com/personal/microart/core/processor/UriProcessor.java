@@ -12,7 +12,13 @@ public class UriProcessor {
     }
 
     public String getVaultName(String uri) {
-        return this.getUriElements(uri)[2];
+        String[] uriElements = this.getUriElements(uri);
+
+        if (uriElements.length < 3) {
+            return "";
+        }
+
+        return uriElements[2];
     }
 
     //suggest unit test

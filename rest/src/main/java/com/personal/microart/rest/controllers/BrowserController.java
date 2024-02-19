@@ -18,12 +18,12 @@ import org.springframework.web.bind.annotation.RestController;
 public class BrowserController extends BaseController {
 
     private final BrowseCore browse;
-//    private final ExchangeAccessor exchangeAccessor;
-//
-//    @PostConstruct
-//    private void setExchangeAccessor() {
-//        this.setExchangeAccessor(exchangeAccessor);
-//    }
+    private final ExchangeAccessor exchangeAccessor;
+
+    @PostConstruct
+    private void setExchangeAccessor() {
+        this.setExchangeAccessor(exchangeAccessor);
+    }
 
     @GetMapping(path = "/**")
     @ResponseBody

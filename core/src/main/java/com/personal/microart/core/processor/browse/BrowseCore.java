@@ -7,29 +7,36 @@ import com.personal.microart.api.operations.browse.BrowseOperation;
 import com.personal.microart.api.operations.browse.BrowseResult;
 import com.personal.microart.api.operations.browse.Content;
 import com.personal.microart.persistence.entities.Artefact;
-import com.personal.microart.persistence.repositories.ArtefactRepository;
+import com.personal.microart.persistence.entities.MicroartUser;
+import com.personal.microart.persistence.entities.Vault;
+import com.personal.microart.persistence.repositories.VaultRepository;
 import io.vavr.control.Either;
 import io.vavr.control.Try;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 
 import java.util.Arrays;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Component
 @RequiredArgsConstructor
 public class BrowseCore implements BrowseOperation {
-    private final ArtefactRepository artefactRepository;
+    private final VaultRepository vaultRepository;
 
     @Override
     public Either<ApiError, BrowseResult> process(BrowseInput input) {
         return Try.of(() -> BrowseResult
                         .builder()
-                        .content(this.artefactRepository
-                                .findArtefactByUriStartingWith(this.transformBrowseToMvn(input.getUri())) // TODO: should include filter for current user
+                        .content(this.getFindableArtefacts()
                                 .stream()
+                                .filter(artefact -> artefact.getUri().startsWith(this.transformBrowseToMvn(input.getUri())))
                                 .map(artefact -> this.getContent(artefact, input.getUri()))
-                                .collect(Collectors.toSet()))
+                                .sorted()
+                                .collect(Collectors.toCollection(LinkedHashSet::new)))
                         .build())
                 .toEither()
                 .mapLeft(throwable -> ServiceUnavailableError.builder().build());
@@ -71,5 +78,20 @@ public class BrowseCore implements BrowseOperation {
         uriElements[0] = "mvn";
 
         return "/" + String.join("/", uriElements);
+    }
+
+    private Set<Artefact> getFindableArtefacts() {
+
+        Object authDetails = SecurityContextHolder.getContext().getAuthentication().getDetails();
+
+        Set<Vault> vaults = authDetails instanceof MicroartUser
+                ? this.vaultRepository.findAllByAuthorizedUsersContainingOrIsPublicTrue((MicroartUser) authDetails)
+                : this.vaultRepository.findAllByIsPublicTrue();
+
+        return vaults
+                .stream()
+                .map(Vault::getArtefacts)
+                .flatMap(List::stream)
+                .collect(Collectors.toSet());
     }
 }
