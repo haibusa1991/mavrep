@@ -1,10 +1,12 @@
 package com.personal.microart.core.processor.file;
 
-import com.personal.microart.api.errors.*;
+import com.personal.microart.api.errors.ApiError;
+import com.personal.microart.api.errors.FileUploadError;
+import com.personal.microart.api.errors.ServiceUnavailableError;
+import com.personal.microart.api.errors.ValidationError;
 import com.personal.microart.api.operations.file.upload.UploadFileInput;
 import com.personal.microart.api.operations.file.upload.UploadFileOperation;
 import com.personal.microart.api.operations.file.upload.UploadFileResult;
-import com.personal.microart.core.auth.basic.BasicAuth;
 import com.personal.microart.core.processor.UriProcessor;
 import com.personal.microart.persistence.entities.Artefact;
 import com.personal.microart.persistence.entities.MicroartUser;
@@ -12,27 +14,23 @@ import com.personal.microart.persistence.entities.Vault;
 import com.personal.microart.persistence.filehandler.FileWriter;
 import com.personal.microart.persistence.repositories.ArtefactRepository;
 import com.personal.microart.persistence.repositories.VaultRepository;
-import io.vavr.API;
 import io.vavr.Tuple;
 import io.vavr.Tuple2;
 import io.vavr.control.Either;
 import io.vavr.control.Try;
 import lombok.RequiredArgsConstructor;
-import org.hibernate.JDBCException;
-import org.springframework.core.convert.ConversionService;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Optional;
-import java.util.UUID;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
-import static io.vavr.API.$;
-import static io.vavr.API.Case;
-import static io.vavr.Predicates.instanceOf;
-
+/**
+ * This component is responsible for file upload operations. Gets the requested file uri and contents and delegates
+ * to the file writer component to do the actual writing to the file system. Returns 400 if filename is invalid;
+ * 409 if the artefact is already deployed; 503 if the file could not be written to disk.
+ */
 @RequiredArgsConstructor
 @Component
 @Transactional
@@ -41,52 +39,28 @@ public class UploadFileCore implements UploadFileOperation {
     private final ArtefactRepository artefactRepository;
     private final VaultRepository vaultRepository;
     private final UriProcessor uriProcessor;
-    private final ConversionService conversionService;
 
 
-    @Override
-    public Either<ApiError, UploadFileResult> process(UploadFileInput input) {
+/**
+ * Processes the upload file input and returns the upload file result.
+ * This method performs the following operations in order:<br>
+ * 1. Validates the filename of the file to be uploaded.<br>
+ * 2. Creates a record for the file in the database. Filename remains blank since it will be updated once the file is
+ * successfully uploaded. <br>
+ * 3. Writes the file to the disk. The writing is delegated to the FileWriter component. Result is a UUID. <br>
+ * 4. Adds the filename to the record from step 2.<br>
+ *
+ * @param input UploadFileInput object containing the target URI and the file contents as  byte[].
+ * @return Either an ApiError or an UploadFileResult.
+ */
+@Override
+public Either<ApiError, UploadFileResult> process(UploadFileInput input) {
 
-        return this.validateFilename(input)
-                .flatMap(this::createFileRecord)
-                .flatMap(this::writeFile)
-                .flatMap(this::updateFilename);
-
-    }
-
-    private Either<ApiError, UploadFileInput> validatePermissions(UploadFileInput input) {
-        String vaultName = this.uriProcessor.getVaultName(input.getUri());
-
-        return Try.of(() -> {
-
-                    MicroartUser user = (MicroartUser) SecurityContextHolder
-                            .getContext()
-                            .getAuthentication()
-                            .getDetails();
-
-                    Vault vault = this.vaultRepository
-                            .findVaultByName(vaultName)
-                            .orElseGet(() -> this.canCreateVault(input)
-                                    ? this.vaultRepository.save(Vault.builder().name(vaultName).user(user).build())
-                                    : Vault.builder().name(UUID.randomUUID().toString()).build());
-
-                    if (!canUpdateVault(vault)) {
-                        throw new IllegalArgumentException();
-                    }
-
-                    return Stream.of(vault)
-                            .map(Vault::getAuthorizedUsers)
-                            .map(authorizedUsers -> authorizedUsers.contains(user))
-                            .map(ignored -> input)
-                            .findFirst()
-                            .orElseThrow(IllegalArgumentException::new);
-                })
-                .toEither()
-                .mapLeft(throwable -> API.Match(throwable).of(
-                        Case($(instanceOf(JDBCException.class)), exception -> ServiceUnavailableError.builder().build()),
-                        Case($(instanceOf(IllegalArgumentException.class)), exception -> UnauthorizedError.builder().build())
-                ));
-    }
+    return this.validateFilename(input)
+            .flatMap(this::createFileRecord)
+            .flatMap(this::writeFile)
+            .flatMap(this::updateFilename);
+}
 
     private Either<ApiError, UploadFileInput> validateFilename(UploadFileInput input) {
         return Try.of(() -> {
@@ -166,23 +140,5 @@ public class UploadFileCore implements UploadFileOperation {
                 })
                 .toEither()
                 .mapLeft(throwable -> ServiceUnavailableError.builder().build());
-    }
-
-    private Boolean canCreateVault(UploadFileInput input) {
-        String uriUsername = this.uriProcessor.getUsername(input.getUri());
-        String authUsername = this.conversionService.convert(Optional.of(input.getAuthentication()), BasicAuth.class).getUsername();
-
-        return uriUsername.equalsIgnoreCase(authUsername);
-    }
-
-    private boolean canUpdateVault(Vault vault) {
-        MicroartUser currentUser = (MicroartUser) SecurityContextHolder
-                .getContext()
-                .getAuthentication()
-                .getDetails();
-
-        return vault
-                .getAuthorizedUsers()
-                .contains(currentUser);
     }
 }

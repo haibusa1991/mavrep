@@ -14,7 +14,11 @@ import org.springframework.stereotype.Component;
 
 import static io.vavr.API.*;
 
-
+/**
+ * This component is responsible for file download operations. Gets the requested file uri and delegates to the file reader
+ * to do the actual reading from the file system. Returns 404 if the file is not found or user is not authorized;
+ * 503 if the file could not be read from disk.
+ */
 @RequiredArgsConstructor
 @Component
 public class DownloadFileCore implements DownloadFileOperation {

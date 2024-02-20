@@ -50,6 +50,7 @@ public class JwtAuthFilterCore extends BaseFilterCore {
         super.setContext(this.context);
     }
 
+    //TODO: Add to docs that blacklisted tokens are not allowed access
     /**
      * Checks if the request is authorized.
      * This method performs the following steps:<br>
@@ -69,6 +70,8 @@ public class JwtAuthFilterCore extends BaseFilterCore {
         if (request.getRequestURI().equalsIgnoreCase("/browse")) {
             return true;
         }
+
+        //TODO: If token is blacklisted, return false
 
         String vaultName = this.uriProcessor.getVaultName(request.getRequestURI());
 

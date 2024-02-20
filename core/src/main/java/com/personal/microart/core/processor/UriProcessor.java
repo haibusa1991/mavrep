@@ -3,7 +3,10 @@ package com.personal.microart.core.processor;
 import org.springframework.stereotype.Component;
 
 import java.util.Arrays;
-
+/**
+ * Helper class responsible for extracting username and vault name from a given URI. Requires /mvn/username/vaultName/...
+ * format. No validation is performed, so the input should be validated before calling any of the methods.
+ */
 @Component
 public class UriProcessor {
 
@@ -21,7 +24,6 @@ public class UriProcessor {
         return uriElements[2];
     }
 
-    //suggest unit test
     private String[] getUriElements(String uri) {
         return Arrays.stream(uri.split("/"))
                 .filter(element -> !element.isBlank())
