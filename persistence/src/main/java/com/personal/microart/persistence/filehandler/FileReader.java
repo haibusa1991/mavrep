@@ -32,7 +32,7 @@ public class FileReader {
 
     private Either<PersistenceError, String> getFilename(String uri) {
         return Try.of(() -> this.artefactRepository
-                        .findByUri(uri).orElseThrow(IllegalArgumentException::new) // uri points to non-existent file
+                        .findArtefactByUri(uri).orElseThrow(IllegalArgumentException::new) // uri points to non-existent file
                         .getFilename())
                 .toEither()
                 .mapLeft(throwable -> Match(throwable).of(

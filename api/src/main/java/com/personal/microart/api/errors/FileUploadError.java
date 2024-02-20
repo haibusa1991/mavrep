@@ -1,7 +1,7 @@
 package com.personal.microart.api.errors;
 
 import lombok.Builder;
-
+//TODO: Delete this class
 public class FileUploadError extends BaseApiError {
 
     @Builder

@@ -12,7 +12,7 @@ import org.hibernate.validator.constraints.Length;
 public class ResetPasswordInput implements ProcessorInput {
 
 
-    @Length(min = 6, max = 400)
+    @Length(min = 6, max = 40)
     private String password;
 
     @Length(max = 100)

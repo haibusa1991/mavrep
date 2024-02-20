@@ -2,9 +2,11 @@ package com.personal.microart.rest.controllers;
 
 import com.personal.microart.api.errors.ApiError;
 import com.personal.microart.api.operations.file.download.DownloadFileResult;
-import io.undertow.servlet.spec.HttpServletResponseImpl;
+import io.undertow.server.HttpServerExchange;
 import io.vavr.control.Either;
-import lombok.SneakyThrows;
+import jakarta.servlet.http.HttpServletResponse;
+import lombok.Setter;
+import org.springframework.context.ApplicationContext;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
@@ -14,20 +16,22 @@ import java.util.List;
 
 public abstract class BaseController {
 
-    public ResponseEntity<?> handle(Either<ApiError, ?> processorResult, HttpServletResponseImpl response) {
+    @Setter
+    private ExchangeAccessor exchangeAccessor;
+
+    public ResponseEntity<?> handle(Either<ApiError, ?> processorResult, HttpServletResponse response) {
         return processorResult.isLeft()
                 ? this.handleError(processorResult, response)
                 : new ResponseEntity<>(processorResult.get(), HttpStatus.OK);
     }
 
-    public ResponseEntity<?> handle(Either<ApiError, ?> processorResult, HttpServletResponseImpl response, HttpStatus status) {
+    public ResponseEntity<?> handle(Either<ApiError, ?> processorResult, HttpServletResponse response, HttpStatus status) {
         return processorResult.isLeft()
                 ? this.handleError(processorResult, response)
                 : new ResponseEntity<>(processorResult.get(), status);
     }
 
-    @SneakyThrows
-    public ResponseEntity<byte[]> handleMvn(Either<ApiError, DownloadFileResult> processorResult, HttpServletResponseImpl response) {
+    public ResponseEntity<byte[]> handleMvn(Either<ApiError, DownloadFileResult> processorResult, HttpServletResponse response) {
         if (processorResult.isLeft()) {
             return this.handleMvnError(processorResult, response);
         }
@@ -38,14 +42,15 @@ public abstract class BaseController {
     }
 
 
-    private ResponseEntity<?> handleError(Either<ApiError, ?> processorResult, HttpServletResponseImpl response) {
+    private ResponseEntity<?> handleError(Either<ApiError, ?> processorResult, HttpServletResponse response) {
         ApiError error = processorResult.getLeft();
-        response.getExchange()
-                .setReasonPhrase(error.getStatusMessage());
+        HttpServerExchange exchange = this.exchangeAccessor.getExchange(response);
+
+        exchange.setReasonPhrase(error.getStatusMessage());
 
         ErrorWrapper wrapper = ErrorWrapper.builder()
                 .errorCode(error.getStatusCode())
-                .uri(response.getExchange().getRequestURI())
+                .uri(exchange.getRequestURI())
                 .dateTime(LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")))
                 .errors(List.of(error.getStatusMessage().split(",\\s*")))
                 .build();
@@ -56,15 +61,13 @@ public abstract class BaseController {
     }
 
 
-    private ResponseEntity<byte[]> handleMvnError(Either<ApiError, ?> processorResult, HttpServletResponseImpl response) {
+    private ResponseEntity<byte[]> handleMvnError(Either<ApiError, ?> processorResult, HttpServletResponse response) {
         ApiError error = processorResult.getLeft();
-        response.getExchange()
+        this.exchangeAccessor.getExchange(response)
                 .setReasonPhrase(error.getStatusMessage());
 
         return ResponseEntity
                 .status(error.getStatusCode())
                 .build();
     }
-
-
 }

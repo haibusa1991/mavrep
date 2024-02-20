@@ -13,6 +13,11 @@ import org.springframework.stereotype.Component;
 
 import java.util.List;
 
+/**
+ * This class is responsible for validating the input of any processor. Wraps the input in an Either object by
+ * collecting all the ConstraintValidation exceptions and returning them as an ApiError. If no errors are found, the
+ * input is returned as a right Either.
+ */
 @Component
 @RequiredArgsConstructor
 public class InputValidator {

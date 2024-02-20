@@ -24,6 +24,15 @@ public class MicroartUser {
         this.password = password;
     }
 
+    public static MicroartUser empty() {
+        return MicroartUser
+                .builder()
+                .email("")
+                .username("")
+                .password("")
+                .build();
+    }
+
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
@@ -34,10 +43,25 @@ public class MicroartUser {
     private String email;
 
     @Column(unique = true)
-    @Length(min=1, max = 40)
-    @Pattern(regexp = "^[^:]*$",message = "cannot contain ':'")
+    @Length(min = 1, max = 40)
+    @Pattern(regexp = "^[^:]*$", message = "cannot contain ':'")
     private String username;
 
     @NotEmpty
     private String password;
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        MicroartUser user = (MicroartUser) o;
+
+        return id.equals(user.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return id.hashCode();
+    }
 }

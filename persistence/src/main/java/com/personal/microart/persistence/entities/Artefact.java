@@ -2,6 +2,7 @@ package com.personal.microart.persistence.entities;
 
 import jakarta.persistence.*;
 import lombok.*;
+import lombok.experimental.Accessors;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -11,6 +12,7 @@ import java.util.UUID;
 @Getter
 @Entity
 @Table(name = "artefacts")
+
 public class Artefact {
 
     @Builder
@@ -27,6 +29,7 @@ public class Artefact {
     @Setter
     private String uri;
 
+    @Accessors(chain = true)
     @Setter
     private String filename;
 

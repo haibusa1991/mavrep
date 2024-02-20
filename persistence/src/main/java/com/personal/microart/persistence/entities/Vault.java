@@ -3,24 +3,34 @@ package com.personal.microart.persistence.entities;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotEmpty;
 import lombok.*;
+import lombok.experimental.Accessors;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 
 @NoArgsConstructor
 @Setter(AccessLevel.PRIVATE)
 @Getter
 @Entity
-@Table(name = "repositories")
-public class Repository {
+@Table(name = "vaults")
+public class Vault {
 
     @Builder
-    public Repository(String name, MicroartUser user) {
+    public Vault(String name, MicroartUser user) {
         this.name = name;
         this.artefacts = new ArrayList<>();
-        this.authorizedUsers = Set.of(user);
+        this.authorizedUsers = new HashSet<>();
+        this.authorizedUsers.add(user);
+        this.isPublic = true;
+    }
+
+    public static Vault empty () {
+        Vault vault = new Vault();
+        vault.name = "";
+        vault.artefacts = new ArrayList<>();
+        vault.authorizedUsers = new HashSet<>();
+        vault.isPublic = true;
+
+        return vault;
     }
 
     @Id
@@ -30,7 +40,7 @@ public class Repository {
     @NotEmpty
     private String name;
 
-    @OneToMany
+    @OneToMany(fetch = FetchType.EAGER)
     private List<Artefact> artefacts;
 
     public Boolean addArtefact(Artefact artefact) {
@@ -41,8 +51,12 @@ public class Repository {
         return this.artefacts.remove(artefact);
     }
 
-    @ManyToMany
+    @ManyToMany(fetch = FetchType.EAGER)
     private Set<MicroartUser> authorizedUsers;
+
+    @Setter
+    @Accessors(fluent = true)
+    private Boolean isPublic;
 
     public Boolean addUser(MicroartUser user) {
         return this.authorizedUsers.add(user);

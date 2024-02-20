@@ -8,5 +8,5 @@ import lombok.*;
 @Builder
 @AllArgsConstructor
 public class LoginResult implements ProcessorResult {
-    //TODO: returns jwt as header
+    private final String jwt;
 }
