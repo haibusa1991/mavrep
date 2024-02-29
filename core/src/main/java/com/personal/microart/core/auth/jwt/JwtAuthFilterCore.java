@@ -1,7 +1,7 @@
 package com.personal.microart.core.auth.jwt;
 
 import com.personal.microart.core.auth.base.BaseFilterCore;
-import com.personal.microart.core.processor.UriProcessor;
+import com.personal.microart.core.Extractor;
 import com.personal.microart.persistence.entities.MicroartUser;
 import com.personal.microart.persistence.entities.Vault;
 import com.personal.microart.persistence.repositories.UserRepository;
@@ -43,7 +43,7 @@ public class JwtAuthFilterCore extends BaseFilterCore {
     private final JwtProvider jwtProvider;
     private final ApplicationContext context;
     private final VaultRepository vaultRepository;
-    private final UriProcessor uriProcessor;
+    private final Extractor uriProcessor;
 
     @PostConstruct
     public void init() {

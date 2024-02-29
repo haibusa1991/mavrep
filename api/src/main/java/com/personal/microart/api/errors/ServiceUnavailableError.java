@@ -7,4 +7,8 @@ public class ServiceUnavailableError extends BaseApiError {
     public ServiceUnavailableError() {
         super(503, "Service unavailable.");
     }
+
+    public static ServiceUnavailableError fromThrowable(Throwable throwable) {
+        return ServiceUnavailableError.builder().build();
+    }
 }

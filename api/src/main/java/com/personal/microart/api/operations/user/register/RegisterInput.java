@@ -1,7 +1,7 @@
 package com.personal.microart.api.operations.user.register;
 
 import com.personal.microart.api.base.ProcessorInput;
-import jakarta.validation.constraints.Email;
+import com.personal.microart.validation.constraints.Rfc5322Email;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.Pattern;
 import lombok.*;
@@ -14,7 +14,7 @@ import org.hibernate.validator.constraints.Length;
 @AllArgsConstructor
 public class RegisterInput implements ProcessorInput {
 
-    @Email
+    @Rfc5322Email
     @NotEmpty
     @Length(max = 40)
     private String email;

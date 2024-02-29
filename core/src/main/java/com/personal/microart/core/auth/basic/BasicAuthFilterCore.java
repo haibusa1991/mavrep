@@ -1,7 +1,7 @@
 package com.personal.microart.core.auth.basic;
 
 import com.personal.microart.core.auth.base.BaseFilterCore;
-import com.personal.microart.core.processor.UriProcessor;
+import com.personal.microart.core.Extractor;
 import com.personal.microart.persistence.entities.MicroartUser;
 import com.personal.microart.persistence.entities.Vault;
 import com.personal.microart.persistence.repositories.UserRepository;
@@ -35,7 +35,7 @@ public class BasicAuthFilterCore extends BaseFilterCore {
     private final ConversionService conversionService;
     private final ApplicationContext context;
     private final UserRepository userRepository;
-    private final UriProcessor uriProcessor;
+    private final Extractor uriProcessor;
     private final VaultRepository vaultRepository;
 
     @PostConstruct

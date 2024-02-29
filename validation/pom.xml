@@ -8,21 +8,14 @@
         <version>${revision}</version>
     </parent>
 
-    <artifactId>api</artifactId>
+    <artifactId>validation</artifactId>
     <version>${revision}</version>
 
     <dependencies>
         <dependency>
-            <groupId>io.vavr</groupId>
-            <artifactId>vavr</artifactId>
-            <version>0.10.4</version>
-        </dependency>
-
-        <dependency>
-            <groupId>com.personal</groupId>
-            <artifactId>validation</artifactId>
-            <version>${revision}</version>
+            <groupId>org.hibernate.validator</groupId>
+            <artifactId>hibernate-validator</artifactId>
+            <version>8.0.1.Final</version>
         </dependency>
     </dependencies>
-
 </project>

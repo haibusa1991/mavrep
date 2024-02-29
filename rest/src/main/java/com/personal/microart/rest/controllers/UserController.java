@@ -3,11 +3,13 @@ package com.personal.microart.rest.controllers;
 import com.personal.microart.api.base.ProcessorInput;
 import com.personal.microart.api.errors.ApiError;
 import com.personal.microart.api.operations.user.login.LoginInput;
+import com.personal.microart.api.operations.user.login.LoginOperation;
 import com.personal.microart.api.operations.user.login.LoginResult;
 import com.personal.microart.api.operations.user.register.RegisterInput;
-import com.personal.microart.core.processor.user.LoginCore;
-import com.personal.microart.core.processor.user.RegisterCore;
-import com.personal.microart.core.validator.InputValidator;
+import com.personal.microart.api.operations.user.register.RegisterOperation;
+import com.personal.microart.api.operations.user.requestpassword.RequestPasswordInput;
+import com.personal.microart.api.operations.user.requestpassword.RequestPasswordOperation;
+import com.personal.microart.core.processor.ProcessorInputValidator;
 import io.vavr.control.Either;
 import jakarta.annotation.PostConstruct;
 import jakarta.servlet.http.HttpServletResponse;
@@ -22,10 +24,11 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/user")
 public class UserController extends BaseController {
 
-    private final InputValidator inputValidator;
-    private final RegisterCore register;
-    private final LoginCore login;
+    private final ProcessorInputValidator inputValidator;
+    private final RegisterOperation register;
+    private final LoginOperation login;
     private final ExchangeAccessor exchangeAccessor;
+    private final RequestPasswordOperation requestPassword;
 
     @PostConstruct
     private void setExchangeAccessor() {
@@ -60,6 +63,17 @@ public class UserController extends BaseController {
         }
 
         return this.handle(loginAttempt, response);
+    }
+
+    @PostMapping(path = "/password-recovery")
+    public ResponseEntity<?> passwordRecovery(@RequestBody RequestPasswordInput input, HttpServletResponse response) {
+
+        Either<ApiError, ProcessorInput> validationResult = this.inputValidator.validateInput(input);
+        if (validationResult.isLeft()) {
+            return this.handle(validationResult, response);
+        }
+
+        return this.handle(this.requestPassword.process(input), response);
     }
 
 }

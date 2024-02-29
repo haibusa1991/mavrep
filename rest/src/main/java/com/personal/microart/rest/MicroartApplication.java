@@ -16,6 +16,7 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 @EnableScheduling
 public class MicroartApplication {
 
+    //TODO: limit the number of requests to the server - max 100 requests per minute
     public static void main(String[] args) {
         SpringApplication.run(MicroartApplication.class, args);
     }
