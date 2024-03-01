@@ -4,7 +4,6 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.personal.microart.api.errors.ServiceUnavailableError;
 import com.personal.microart.api.operations.user.requestpassword.RequestPasswordInput;
-import com.personal.microart.core.email.base.EmailSender;
 import com.personal.microart.core.email.mailgun.MailgunEmailSender;
 import com.personal.microart.core.email.mailgun.MailgunResponse;
 import com.personal.microart.persistence.entities.MicroartUser;
@@ -34,7 +33,6 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
 import java.time.Duration;
 import java.time.temporal.ChronoUnit;
-import java.time.temporal.TemporalUnit;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -73,7 +71,7 @@ public class RequestPasswordTest {
     @Value("${PASSWORD_RECOVERY_TOKEN_VALIDITY}")
     private Long TOKEN_VALIDITY;
 
-    private final String URI = "/user/password-recovery";
+    private final String URI = "/user/request-password";
     private final String USER_EMAIL = "test@test.bg";
     private final String USER_PASSWORD = "password";
     private final String USER_USERNAME = "mytestuser";
@@ -289,7 +287,7 @@ public class RequestPasswordTest {
         PasswordRecoveryToken passwordRecoveryToken = PasswordRecoveryToken
                 .builder()
                 .user(userRepository.findByEmail(this.USER_EMAIL).get())
-                .value("test")
+                .tokenValue("test")
                 .tokenValidity(10)
                 .build();
 
@@ -313,13 +311,13 @@ public class RequestPasswordTest {
         List<PasswordRecoveryToken> all = this.passwordRecoveryTokenRepository.findAll();
 
         all.stream()
-                .filter(token -> token.getValue().equalsIgnoreCase("test"))
+                .filter(token -> token.getTokenValue().equalsIgnoreCase("test"))
                 .forEach(token -> {
                     assertEquals(token.getIsValid(), false);
                 });
 
         all.stream()
-                .filter(token -> !token.getValue().equalsIgnoreCase("test"))
+                .filter(token -> !token.getTokenValue().equalsIgnoreCase("test"))
                 .forEach(token -> {
                     assertEquals(token.getIsValid(), true);
                 });

@@ -57,9 +57,6 @@ class UploadFileTest {
     private MockMvc mockMvc;
 
     @Autowired
-    private WebTestClient webTestClient;
-
-    @Autowired
     private UserRepository userRepository;
 
     @Autowired

@@ -1,14 +1,12 @@
 package com.personal.microart.persistence.entities;
 
-import jakarta.annotation.PostConstruct;
 import jakarta.persistence.*;
-import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.springframework.beans.factory.annotation.Value;
 
 import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.UUID;
 
 
@@ -19,11 +17,11 @@ import java.util.UUID;
 public class PasswordRecoveryToken {
 
     @Builder
-    public PasswordRecoveryToken(MicroartUser user, String value, Integer tokenValidity) {
+    public PasswordRecoveryToken(MicroartUser user, String tokenValue, Integer tokenValidity) {
         this.user = user;
-        this.value = value;
+        this.tokenValue = tokenValue;
         this.isValid = true;
-        this.validUntil = LocalDateTime.now().plusMinutes(tokenValidity);
+        this.validUntil = LocalDateTime.now(ZoneOffset.UTC).plusMinutes(tokenValidity);
     }
 
     @Id
@@ -35,8 +33,7 @@ public class PasswordRecoveryToken {
     @ManyToOne
     private MicroartUser user;
 
-    @Column(name = "token_value")
-    private String value;
+    private String tokenValue;
 
     private Boolean isValid;
 

@@ -7,9 +7,6 @@ import com.personal.microart.persistence.entities.PasswordRecoveryToken;
 import com.personal.microart.persistence.repositories.PasswordRecoveryTokenRepository;
 import io.vavr.control.Either;
 import io.vavr.control.Try;
-import jakarta.persistence.Transient;
-import lombok.AccessLevel;
-import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -44,7 +41,7 @@ public class Base64PasswordRecoveryManager implements PasswordRecoveryManager {
     public Either<ApiError, String> getRecoveryToken(MicroartUser user) {
         return this.invalidateExistingTokens(user)
                 .flatMap(this::createRecoveryTokenRecord)
-                .map(PasswordRecoveryToken::getValue);
+                .map(PasswordRecoveryToken::getTokenValue);
     }
 
     private String generatePasswordResetToken() {
@@ -72,7 +69,7 @@ public class Base64PasswordRecoveryManager implements PasswordRecoveryManager {
                     PasswordRecoveryToken token = PasswordRecoveryToken
                             .builder()
                             .user(user)
-                            .value(this.generatePasswordResetToken())
+                            .tokenValue(this.generatePasswordResetToken())
                             .tokenValidity(this.TOKEN_VALIDITY)
                             .build();
 

@@ -11,4 +11,6 @@ public interface PasswordRecoveryTokenRepository extends JpaRepository<PasswordR
 
     Optional<PasswordRecoveryToken> findByUserAndIsValidTrue(MicroartUser user);
 
+    Optional<PasswordRecoveryToken> findByTokenValue(String value);
+
 }
