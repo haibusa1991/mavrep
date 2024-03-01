@@ -30,6 +30,15 @@ public class MailgunEmailSender implements EmailSender {
     @Value("${MAILGUN_URL}")
     private String url;
 
+    /**
+     * This method is responsible for sending an email. Uses blocking implementation of WebClient. Blocking is requried
+     * in order to return 503 in case that the Mailgun API is not available, e.g. network issues, expired API key,
+     * blocked domain or account, etc. Response is available, should we want to save id data in local DB.
+     * In case that we are not interested in returning 503 or saving the request, we can use non-blocking call.
+     *
+     * @param email The email to be sent.
+     * @return Either an ApiError or an EmailSenderResponse object.
+     */
     @Override
     public Either<ApiError, ? extends EmailSenderResponse> sendEmail(Email email) {
         WebClient client = WebClient.create();

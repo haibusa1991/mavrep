@@ -18,16 +18,27 @@ import org.springframework.transaction.annotation.Transactional;
 import java.security.SecureRandom;
 import java.util.Base64;
 import java.util.Random;
-
+/**
+ * This is a PasswordRecoveryManager implementation that generatates a random, url-safe, Base64 encoded token
+ * based on a SecureRandom number generator.
+ */
 @Component
 @RequiredArgsConstructor
 public class Base64PasswordRecoveryManager implements PasswordRecoveryManager {
+    /**
+     * This repository is used for saving, invalidating and retrieving password recovery tokens.
+     */
     private final PasswordRecoveryTokenRepository passwordRecoveryTokenRepository;
     private final Random random = new SecureRandom();
 
     @Value("${PASSWORD_RECOVERY_TOKEN_VALIDITY}")
     private Integer TOKEN_VALIDITY;
 
+
+    /**
+     * Invalidates all tokens for the current user and generates a new recovery token. New token is saved
+     * and returned as a String.
+     */
     @Override
     @Transactional
     public Either<ApiError, String> getRecoveryToken(MicroartUser user) {

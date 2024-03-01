@@ -26,6 +26,12 @@ import java.util.HashMap;
 
 import static io.vavr.API.*;
 import static io.vavr.Predicates.instanceOf;
+/**
+ * This is RequestPasswordInput implementation. EmailGenerator must be explicitly defined in the constructor.
+ * In case the user provides email that does not exist in the database, the application will return a SilentFailError.
+ * This is a special case that returns 204, but it is still an error. The application will return 503 in case of any
+ * other error, e.g. EmailSender is unable to send an email.
+ */
 
 @Component
 @RequiredArgsConstructor
@@ -35,7 +41,7 @@ public class RequestPasswordCore implements RequestPasswordOperation {
     private final EmailSender emailSender;
 
     @Qualifier("passwordRecoveryEmailGenerator")
-    private final EmailGenerator emailGenerator;
+    private final EmailGenerator emailGenerator; //TODO: replace with EmailFactory
 
     @Value("${PASSWORD_RECOVERY_TOKEN_VALIDITY}")
     private Integer TOKEN_VALIDITY;

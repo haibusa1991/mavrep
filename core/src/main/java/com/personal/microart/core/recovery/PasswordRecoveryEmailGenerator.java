@@ -11,7 +11,10 @@ import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
 
 import java.util.Map;
-
+/**
+ * This class is responsible for generating the actual email the user receives. Implementation of the EmailGenerator
+ * interface. It uses Thymeleaf to process an HTML template according to the TemplateEngineConfigurator.
+ */
 @Component
 @RequiredArgsConstructor
 @Qualifier("passwordRecoveryEmailGenerator")
@@ -26,6 +29,12 @@ public class PasswordRecoveryEmailGenerator implements EmailGenerator {
     @Value("${APPLICATION_URL}")
     private String applicationUrl;
 
+    /**
+     * This method generates an email with the provided data. The email data is provided as a map with EmailParameter keys.
+     *
+     * @param emailData The data to be included in the email.
+     * @return The generated email.
+     */
     @Override
     public Email getEmail(Map<EmailParameter, String> emailData) {
 

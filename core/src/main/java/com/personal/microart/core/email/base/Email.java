@@ -3,6 +3,7 @@ package com.personal.microart.core.email.base;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
+
 /**
  * The Email class represents an email with a recipient, subject, and HTML body.
  */
