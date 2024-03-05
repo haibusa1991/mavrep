@@ -9,8 +9,10 @@ import com.personal.microart.api.operations.user.register.RegisterInput;
 import com.personal.microart.api.operations.user.register.RegisterOperation;
 import com.personal.microart.api.operations.user.requestpassword.RequestPasswordInput;
 import com.personal.microart.api.operations.user.requestpassword.RequestPasswordOperation;
-import com.personal.microart.api.operations.verifypassordresettoken.VerifyPasswordResetTokenInput;
-import com.personal.microart.api.operations.verifypassordresettoken.VerifyPasswordResetTokenOperation;
+import com.personal.microart.api.operations.user.resetpassword.ResetPasswordInput;
+import com.personal.microart.api.operations.user.resetpassword.ResetPasswordOperation;
+import com.personal.microart.api.operations.user.verifypassordresettoken.VerifyPasswordResetTokenInput;
+import com.personal.microart.api.operations.user.verifypassordresettoken.VerifyPasswordResetTokenOperation;
 import com.personal.microart.core.processor.ProcessorInputValidator;
 import io.vavr.control.Either;
 import jakarta.annotation.PostConstruct;
@@ -32,6 +34,7 @@ public class UserController extends BaseController {
     private final ExchangeAccessor exchangeAccessor;
     private final RequestPasswordOperation requestPassword;
     private final VerifyPasswordResetTokenOperation verifyPasswordResetToken;
+    private final ResetPasswordOperation resetPassword;
 
     @PostConstruct
     private void setExchangeAccessor() {
@@ -90,6 +93,23 @@ public class UserController extends BaseController {
         return validationResult.isLeft()
                 ? this.handle(validationResult, response)
                 : this.handle(this.verifyPasswordResetToken.process(input), response, HttpStatus.NO_CONTENT);
+    }
+
+    @PostMapping(path = "/password-reset")
+    public ResponseEntity<?> passwordReset(@RequestParam("token") String passwordResetToken,
+                                           @RequestBody ResetPasswordInput rawInput,
+                                           HttpServletResponse response) {
+
+        ResetPasswordInput input = ResetPasswordInput.builder()
+                .resetToken(passwordResetToken)
+                .password(rawInput.getPassword())
+                .build();
+
+        Either<ApiError, ProcessorInput> validationResult = this.inputValidator.validateInput(input);
+
+        return validationResult.isLeft()
+                ? this.handle(validationResult, response)
+                : this.handle(this.resetPassword.process(input), response, HttpStatus.NO_CONTENT);
     }
 
 }

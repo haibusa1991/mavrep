@@ -1,4 +1,4 @@
-package com.personal.microart.api.operations.verifypassordresettoken;
+package com.personal.microart.api.operations.user.verifypassordresettoken;
 
 import com.personal.microart.api.base.ProcessorInput;
 import jakarta.validation.constraints.NotNull;

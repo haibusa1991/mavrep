@@ -7,6 +7,7 @@ import jakarta.validation.constraints.Pattern;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 import org.hibernate.validator.constraints.Length;
 
 import java.util.UUID;
@@ -48,6 +49,7 @@ public class MicroartUser {
     private String username;
 
     @NotEmpty
+    @Setter
     private String password;
 
     @Override
