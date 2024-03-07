@@ -16,7 +16,7 @@ import java.util.UUID;
 public class BlacklistedJwt {
 
     @Builder
-    public BlacklistedJwt(String token, Long validity) {
+    public BlacklistedJwt(String token, LocalDateTime validity) {
         this.token = token;
         this.validity = validity;
     }
@@ -27,6 +27,6 @@ public class BlacklistedJwt {
 
     private String token;
 
-    private Long validity;
+    private LocalDateTime validity;
 
 }

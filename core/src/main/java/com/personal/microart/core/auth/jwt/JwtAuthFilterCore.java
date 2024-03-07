@@ -4,6 +4,7 @@ import com.personal.microart.core.auth.base.BaseFilterCore;
 import com.personal.microart.core.Extractor;
 import com.personal.microart.persistence.entities.MicroartUser;
 import com.personal.microart.persistence.entities.Vault;
+import com.personal.microart.persistence.repositories.BlacklistedJwtRepository;
 import com.personal.microart.persistence.repositories.UserRepository;
 import com.personal.microart.persistence.repositories.VaultRepository;
 import io.vavr.Tuple;
@@ -44,13 +45,13 @@ public class JwtAuthFilterCore extends BaseFilterCore {
     private final ApplicationContext context;
     private final VaultRepository vaultRepository;
     private final Extractor uriProcessor;
+    private final BlacklistedJwtRepository blacklistedJwtRepository;
 
     @PostConstruct
     public void init() {
         super.setContext(this.context);
     }
 
-    //TODO: Add to docs that blacklisted tokens are not allowed access
     /**
      * Checks if the request is authorized.
      * This method performs the following steps:<br>
@@ -65,17 +66,29 @@ public class JwtAuthFilterCore extends BaseFilterCore {
      */
     @Override
     public Boolean isAuthorized(HttpServletRequest request) {
-        System.out.println("JwtAuthFilter was called");
+        System.out.println("JwtAuthFilter was called"); //TODO: remove
 
         if (request.getRequestURI().equalsIgnoreCase("/browse")) {
             return true;
         }
 
-        //TODO: If token is blacklisted, return false
+        String rawAuthHeader = request.getHeader(HttpHeaders.AUTHORIZATION);
+
+        if (rawAuthHeader == null || !this.jwtProvider.isValidJwt(rawAuthHeader)) {
+            return false;
+        }
+
+        Boolean isBlacklisted = this.blacklistedJwtRepository
+                .existsByToken(request.getHeader(HttpHeaders.AUTHORIZATION).substring(7));
+
+        if (isBlacklisted) {
+            return false;
+        }
 
         String vaultName = this.uriProcessor.getVaultName(request.getRequestURI());
 
-        Vault vault = this.vaultRepository.findVaultByName(vaultName)
+        Vault vault = this.vaultRepository
+                .findVaultByName(vaultName)
                 .orElseGet(Vault::empty);
 
         if (vault.isPublic()) {

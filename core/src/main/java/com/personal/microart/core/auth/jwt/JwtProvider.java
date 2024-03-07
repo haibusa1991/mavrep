@@ -78,4 +78,20 @@ public class JwtProvider {
                     .build();
         }).getOrElseGet(ignored -> Token.empty());
     }
+
+
+    public Boolean isValidJwt(String rawHeader) {
+        return Try.of(() -> {
+            if (rawHeader == null || !rawHeader.startsWith("Bearer ")) {
+                return false;
+            }
+
+            JWT.require(Algorithm.HMAC256(this.JWT_SECRET))
+                    .build()
+                    .verify(rawHeader.substring(7));
+
+            return true;
+        }).getOrElseGet(ignored -> false);
+
+    }
 }

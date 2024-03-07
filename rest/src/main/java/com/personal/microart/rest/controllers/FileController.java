@@ -49,7 +49,7 @@ public class FileController extends BaseController {
                 .content(content)
                 .authentication(request.getHeader(HttpHeaders.AUTHORIZATION))
                 .build();
-        System.out.println(SecurityContextHolder.getContext().getAuthentication().toString());
+
         return this.handle(this.uploadFile.process(input), response);
     }
 }

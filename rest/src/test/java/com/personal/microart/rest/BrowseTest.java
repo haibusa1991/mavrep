@@ -36,6 +36,8 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import java.util.List;
 import java.util.Random;
 
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -211,6 +213,11 @@ class BrowseTest {
                 .andExpect(jsonPath("$.content[0].uri").value(String.format("/browse/%s", this.EXISTING_USERNAME_1)));
     }
 
+    @Test
+    public void returnsListOfAllPublicVaultsWithCorrectUrisWhenJwtBlacklisted() {
+        fail();
+    }
+
     @SneakyThrows
     @Test
     public void exploresPublicVaultAndDownloadsFileWhenUserIsAnonymous() {
@@ -244,6 +251,11 @@ class BrowseTest {
                         .andExpect(content().bytes(this.FILE_CONTENTS));
             }
         }
+    }
+
+    @Test
+    public void exploresPublicVaultAndDownloadsFileWhenJwtBlacklisted() {
+        fail();
     }
 
     @SneakyThrows
