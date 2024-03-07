@@ -7,7 +7,7 @@ import com.personal.microart.api.errors.ValidationError;
 import com.personal.microart.api.operations.file.upload.UploadFileInput;
 import com.personal.microart.api.operations.file.upload.UploadFileOperation;
 import com.personal.microart.api.operations.file.upload.UploadFileResult;
-import com.personal.microart.core.processor.UriProcessor;
+import com.personal.microart.core.Extractor;
 import com.personal.microart.persistence.entities.Artefact;
 import com.personal.microart.persistence.entities.MicroartUser;
 import com.personal.microart.persistence.entities.Vault;
@@ -38,7 +38,7 @@ public class UploadFileCore implements UploadFileOperation {
     private final FileWriter fileWriter;
     private final ArtefactRepository artefactRepository;
     private final VaultRepository vaultRepository;
-    private final UriProcessor uriProcessor;
+    private final Extractor uriProcessor;
 
 
 /**

@@ -1,4 +1,4 @@
-package com.personal.microart.core.processor;
+package com.personal.microart.core;
 
 import org.springframework.stereotype.Component;
 
@@ -8,7 +8,7 @@ import java.util.Arrays;
  * format. No validation is performed, so the input should be validated before calling any of the methods.
  */
 @Component
-public class UriProcessor {
+public class Extractor {
 
     public String getUsername(String uri) {
         return this.getUriElements(uri)[1];

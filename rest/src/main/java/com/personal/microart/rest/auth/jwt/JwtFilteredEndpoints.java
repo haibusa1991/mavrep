@@ -10,7 +10,7 @@ import java.util.Map;
 @Component
 public class JwtFilteredEndpoints implements FilterEndpoints {
 
-    private final List<String> filteredGet = List.of("/browse/**");
+    private final List<String> filteredGet = List.of("/browse/**","/test/**");
     private final List<String> filteredPost = List.of();
     private final List<String> filteredPut = List.of();
     private final List<String> filteredDelete = List.of();

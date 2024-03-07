@@ -1,7 +1,7 @@
 package com.personal.microart.api.operations.user.requestpassword;
 
 import com.personal.microart.api.base.ProcessorInput;
-import jakarta.validation.constraints.Email;
+import com.personal.microart.validation.constraints.Rfc5322Email;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
 import org.hibernate.validator.constraints.Length;
@@ -10,11 +10,12 @@ import org.hibernate.validator.constraints.Length;
 @Setter(AccessLevel.PRIVATE)
 @Builder
 @AllArgsConstructor
+@NoArgsConstructor
 public class RequestPasswordInput implements ProcessorInput {
 
-    @Email
+    @Rfc5322Email
     @NotNull
-    @Length(max = 40)
+    @Length(max = 40, message = "must be less than {max} characters")
     private String email;
 
 }

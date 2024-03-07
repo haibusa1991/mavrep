@@ -4,3 +4,10 @@
 /core/target/
 /persistence/target/
 /rest/target/
+/validation/target/
+/api/.flattened-pom.xml
+/core/.flattened-pom.xml
+/persistence/.flattened-pom.xml
+/rest/.flattened-pom.xml
+/validation/.flattened-pom.xml
+/.flattened-pom.xml

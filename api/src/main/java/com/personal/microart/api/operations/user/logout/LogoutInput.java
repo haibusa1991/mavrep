@@ -11,4 +11,6 @@ import org.hibernate.validator.constraints.Length;
 @AllArgsConstructor
 public class LogoutInput implements ProcessorInput {
 
+    @Length(max = 300, message = "must be less than {max} characters")
+    private String authentication;
 }

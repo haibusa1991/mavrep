@@ -9,6 +9,7 @@ import lombok.*;
 @AllArgsConstructor
 public class UploadFileInput implements ProcessorInput {
 
+    //TODO: Add validation
     private byte[] content;
     private String authentication;
     private String uri;
