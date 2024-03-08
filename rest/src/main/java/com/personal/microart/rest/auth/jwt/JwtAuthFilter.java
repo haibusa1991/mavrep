@@ -10,11 +10,11 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class JwtAuthFilter extends BaseFilter {
     private final JwtAuthFilterCore filterCore;
-    private final JwtFilteredEndpoints endpoints;
+    private final JwtProtectedEndpoints endpoints;
 
     @PostConstruct
     private void init() {
         super.setFilterCore(this.filterCore);
-        super.setEndpoints(this.endpoints);
+        super.setProtectedEndpoints(this.endpoints);
     }
 }

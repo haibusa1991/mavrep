@@ -23,6 +23,7 @@ public class MicroartUser {
         this.email = email;
         this.username = username;
         this.password = password;
+        this.enabled = true;
     }
 
     public static MicroartUser empty() {
@@ -51,6 +52,22 @@ public class MicroartUser {
     @NotEmpty
     @Setter
     private String password;
+
+    private Boolean enabled;
+
+    private MicroartUser enableUser() {
+        this.enabled = true;
+        return this;
+    }
+
+    private MicroartUser disableUser() {
+        this.enabled = false;
+        return this;
+    }
+
+    public Boolean isEmpty() {
+        return this.username.isEmpty() && this.email.isEmpty() && this.password.isEmpty();
+    }
 
     @Override
     public boolean equals(Object o) {
