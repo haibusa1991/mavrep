@@ -8,22 +8,27 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.Setter;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.security.authentication.AnonymousAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 
-public abstract class BaseFilter extends OncePerRequestFilter{
+public abstract class BaseFilter extends OncePerRequestFilter {
     @Setter
     private FilterCore filterCore;
     @Setter
-    private FilterEndpoints endpoints;
+    private ProtectedEndpoints protectedEndpoints;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
 
-        if (this.filterCore.isFiltered(request, endpoints.getFilteredEndpoints()) && !this.filterCore.isAuthorized(request)) {
+        Authentication authentication = this.filterCore.getAuthentication(request);
+        boolean isAnonymousUser = authentication instanceof AnonymousAuthenticationToken;
+
+        if (this.filterCore.isProtectedEndpoint(request, protectedEndpoints.getProtectedEndpoints()) && isAnonymousUser) {
             System.out.printf("%s denied access", this.getClass().getSimpleName()); //TODO: replace with logger
             response.setContentType(MediaType.TEXT_HTML_VALUE);
             response.setStatus(HttpStatus.FORBIDDEN.value());

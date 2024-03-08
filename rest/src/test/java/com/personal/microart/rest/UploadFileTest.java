@@ -125,6 +125,11 @@ class UploadFileTest {
     @Test
     @SneakyThrows
     public void returns403onAnonymousUser() {
+        HttpServerExchange httpServerExchange = mock(HttpServerExchange.class);
+        when(this.exchangeAccessor.getExchange(any())).thenReturn(httpServerExchange);
+        when(httpServerExchange.setReasonPhrase(any(String.class))).thenReturn(httpServerExchange);
+        when(httpServerExchange.getRequestURI()).thenReturn(this.VALID_INPUT.getUri());
+
         mockMvc.perform(MockMvcRequestBuilders.put(this.VALID_INPUT.getUri())
                         .contentType(MediaType.APPLICATION_OCTET_STREAM)
                         .content(this.VALID_INPUT.getContent()))
@@ -134,6 +139,11 @@ class UploadFileTest {
     @SneakyThrows
     @Test
     public void returns403onInvalidCredentials() {
+        HttpServerExchange httpServerExchange = mock(HttpServerExchange.class);
+        when(this.exchangeAccessor.getExchange(any())).thenReturn(httpServerExchange);
+        when(httpServerExchange.setReasonPhrase(any(String.class))).thenReturn(httpServerExchange);
+        when(httpServerExchange.getRequestURI()).thenReturn(this.VALID_INPUT.getUri());
+
         mockMvc.perform(MockMvcRequestBuilders.put(this.VALID_INPUT.getUri())
                         .contentType(MediaType.APPLICATION_OCTET_STREAM)
                         .content(this.VALID_INPUT.getContent())

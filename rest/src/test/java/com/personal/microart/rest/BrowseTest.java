@@ -2,15 +2,19 @@ package com.personal.microart.rest;
 
 import com.jayway.jsonpath.JsonPath;
 import com.personal.microart.core.auth.jwt.JwtProvider;
+import com.personal.microart.core.auth.jwt.Token;
 import com.personal.microart.persistence.entities.Artefact;
+import com.personal.microart.persistence.entities.BlacklistedJwt;
 import com.personal.microart.persistence.entities.MicroartUser;
 import com.personal.microart.persistence.entities.Vault;
 import com.personal.microart.persistence.filehandler.FileReader;
 import com.personal.microart.persistence.filehandler.FileWriter;
 import com.personal.microart.persistence.repositories.ArtefactRepository;
+import com.personal.microart.persistence.repositories.BlacklistedJwtRepository;
 import com.personal.microart.persistence.repositories.UserRepository;
 import com.personal.microart.persistence.repositories.VaultRepository;
 import com.personal.microart.rest.controllers.ExchangeAccessor;
+import io.undertow.server.HttpServerExchange;
 import io.vavr.control.Either;
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.*;
@@ -33,12 +37,15 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
+import java.time.ZoneOffset;
 import java.util.List;
+import java.util.Optional;
 import java.util.Random;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -66,6 +73,9 @@ class BrowseTest {
     @Autowired
     private ConversionService conversionService;
 
+    @Autowired
+    private BlacklistedJwtRepository blacklistedJwtRepository;
+
     @MockBean
     private FileReader fileReader;
 
@@ -73,6 +83,9 @@ class BrowseTest {
 
     @Autowired
     private JwtProvider jwtProvider;
+
+    @MockBean
+    private ExchangeAccessor exchangeAccessor;
 
     private final byte[] FILE_CONTENTS = new byte[1024];
 
@@ -177,6 +190,7 @@ class BrowseTest {
         this.vaultRepository.deleteAll();
         this.artefactRepository.deleteAll();
         this.userRepository.deleteAll();
+        this.blacklistedJwtRepository.deleteAll();
     }
 
     private String getAuthHeaderValue(MicroartUser user) {
@@ -211,11 +225,6 @@ class BrowseTest {
                 .andExpect(jsonPath("$.content.length()").value(1))
                 .andExpect(jsonPath("$.content[0].name").value(this.EXISTING_USERNAME_1))
                 .andExpect(jsonPath("$.content[0].uri").value(String.format("/browse/%s", this.EXISTING_USERNAME_1)));
-    }
-
-    @Test
-    public void returnsListOfAllPublicVaultsWithCorrectUrisWhenJwtBlacklisted() {
-        fail();
     }
 
     @SneakyThrows
@@ -253,9 +262,52 @@ class BrowseTest {
         }
     }
 
+    @SneakyThrows
     @Test
     public void exploresPublicVaultAndDownloadsFileWhenJwtBlacklisted() {
-        fail();
+        when(this.fileReader.readFile(any())).thenReturn(Either.right(this.FILE_CONTENTS));
+
+        String authHeaderValue = this.getAuthHeaderValue(this.EXISTING_USER_1);
+        Token token = this.jwtProvider.getJwt(authHeaderValue);
+
+        BlacklistedJwt blacklistedJwt = BlacklistedJwt
+                .builder()
+                .token(authHeaderValue.substring(7))
+                .validity(token.getExp().atOffset(ZoneOffset.UTC).toLocalDateTime())
+                .build();
+
+        this.blacklistedJwtRepository.save(blacklistedJwt);
+
+        MvcResult result;
+        String uri = "/browse";
+
+        while (!uri.contains("/mvn")) {
+            result = this.mockMvc.perform(get(uri)
+                            .header(HttpHeaders.AUTHORIZATION, authHeaderValue))
+                    .andExpect(status().isOk())
+                    .andReturn();
+
+            String content = result.getResponse().getContentAsString();
+
+            uri = JsonPath.parse(content).read("$.content[0].uri");
+            String name = JsonPath.parse(content).read("$.content[0].name");
+            String[] uriElements = uri.split("/");
+
+            Assertions.assertEquals(uriElements[uriElements.length - 1], name);
+            Assertions.assertEquals((Integer) 1, JsonPath.read(result.getResponse().getContentAsString(), "$.content.length()"));
+
+            //if this is the bottom of the repository, replace 'browse' with 'mvn' and download the file. Kinda ugly.
+            if (uri.contains("/browse"))
+                Assertions.assertEquals(result.getRequest().getRequestURI() + "/" + name, uri);
+            else {
+                Assertions.assertEquals(result.getRequest().getRequestURI().replace("/browse", "/mvn") + "/" + name, uri);
+                mockMvc.perform(MockMvcRequestBuilders
+                                .get(uri)
+                                .header(HttpHeaders.AUTHORIZATION, authHeaderValue))
+                        .andExpect(status().isOk())
+                        .andExpect(content().bytes(this.FILE_CONTENTS));
+            }
+        }
     }
 
     @SneakyThrows
@@ -383,12 +435,45 @@ class BrowseTest {
             if (uri.contains("/browse"))
                 Assertions.assertEquals(result.getRequest().getRequestURI() + "/" + name, uri);
             else {
+                HttpServerExchange httpServerExchange = mock(HttpServerExchange.class);
+                when(this.exchangeAccessor.getExchange(any())).thenReturn(httpServerExchange);
+                when(httpServerExchange.setReasonPhrase(any(String.class))).thenReturn(httpServerExchange);
+                when(httpServerExchange.getRequestURI()).thenReturn(result.getRequest().getRequestURI().replace("/browse", "/mvn") + "/" + name, uri);
+
                 Assertions.assertEquals(result.getRequest().getRequestURI().replace("/browse", "/mvn") + "/" + name, uri);
                 mockMvc.perform(get(uri)
-                                .header(HttpHeaders.AUTHORIZATION, this.getAuthHeaderValue(this.EXISTING_USER_3)))
+                                .header(HttpHeaders.AUTHORIZATION, this.getAuthHeaderValue(this.EXISTING_USER_2)))
                         .andExpect(status().isOk())
                         .andExpect(content().bytes(this.FILE_CONTENTS));
             }
         }
+    }
+
+    @SneakyThrows
+    @Test
+    public void returns403whenJwtBlacklistedAndDownloadingFromAuthorizedVault() {
+        when(this.fileReader.readFile(any())).thenReturn(Either.right(this.FILE_CONTENTS));
+        String uri = this.artefactRepository.findAllByFilename("file2").stream().findFirst().get().getUri();
+
+        HttpServerExchange httpServerExchange = mock(HttpServerExchange.class);
+        when(this.exchangeAccessor.getExchange(any())).thenReturn(httpServerExchange);
+        when(httpServerExchange.setReasonPhrase(any(String.class))).thenReturn(httpServerExchange);
+        when(httpServerExchange.getRequestURI()).thenReturn(uri);
+
+
+        String authHeaderValue = this.getAuthHeaderValue(this.EXISTING_USER_2);
+        Token token = this.jwtProvider.getJwt(authHeaderValue);
+
+        BlacklistedJwt blacklistedJwt = BlacklistedJwt
+                .builder()
+                .token(authHeaderValue.substring(7))
+                .validity(token.getExp().atOffset(ZoneOffset.UTC).toLocalDateTime())
+                .build();
+
+        this.blacklistedJwtRepository.save(blacklistedJwt);
+
+        mockMvc.perform(get(uri)
+                        .header(HttpHeaders.AUTHORIZATION, authHeaderValue))
+                .andExpect(status().isForbidden());
     }
 }

@@ -10,11 +10,11 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class BasicAuthFilter extends BaseFilter {
     private final BasicAuthFilterCore filterCore;
-    private final BasicAuthFilteredEndpoints endpoints;
+    private final BasicAuthProtectedEndpoints endpoints;
 
     @PostConstruct
     private void init() {
         super.setFilterCore(this.filterCore);
-        super.setEndpoints(this.endpoints);
+        super.setProtectedEndpoints(this.endpoints);
     }
 }

@@ -15,29 +15,22 @@ public interface FilterCore {
 
     /**
      * Provides an Authentication object to use with the SecurityContextHolder. The Authentication object can be
-     * a UsernamePasswordAuthenticationToken, an AnonymousAuthenticationToken, or any other implementation of the
-     * Authentication interface.
+     * an AnonymousAuthenticationToken, or an Authentication interface implementation.
      *
      * @param request The HTTP request from which to retrieve the authentication information.
      * @return The authentication information.
      */
     Authentication getAuthentication(HttpServletRequest request);
 
-    /**
-     * Checks whether the credentials in the provided HTTP request are authorized to access the requested resource.
-     *
-     * @param request The HTTP request to check.
-     * @return True if the request is authorized, false otherwise.
-     */
-    Boolean isAuthorized(HttpServletRequest request);
 
     /**
      * Checks if the filter should be applied to the provided HTTP request. Provided map specifies the HTTP methods
      * and their corresponding endpoints.
      *
      * @param request The HTTP request to check.
-     * @param filteredEndpoints The map of HTTP methods and their corresponding filtered endpoints.
-     * @return True if the request is filtered, false otherwise.
+     * @param protectedEndpoints The map of HTTP methods and their corresponding protected endpoints.
+     * @return True if the endpoint is protected, false otherwise.
      */
-    Boolean isFiltered(HttpServletRequest request, Map<HttpMethod, List<String>> filteredEndpoints);
+    Boolean isProtectedEndpoint(HttpServletRequest request, Map<HttpMethod, List<String>> protectedEndpoints);
+
 }

@@ -1,9 +1,6 @@
 package com.personal.microart.core.processor.file;
 
-import com.personal.microart.api.errors.ApiError;
-import com.personal.microart.api.errors.FileUploadError;
-import com.personal.microart.api.errors.ServiceUnavailableError;
-import com.personal.microart.api.errors.ValidationError;
+import com.personal.microart.api.errors.*;
 import com.personal.microart.api.operations.file.upload.UploadFileInput;
 import com.personal.microart.api.operations.file.upload.UploadFileOperation;
 import com.personal.microart.api.operations.file.upload.UploadFileResult;
@@ -19,6 +16,8 @@ import io.vavr.Tuple2;
 import io.vavr.control.Either;
 import io.vavr.control.Try;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.authentication.AnonymousAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -38,29 +37,60 @@ public class UploadFileCore implements UploadFileOperation {
     private final FileWriter fileWriter;
     private final ArtefactRepository artefactRepository;
     private final VaultRepository vaultRepository;
-    private final Extractor uriProcessor;
+    private final Extractor extractor;
 
 
-/**
- * Processes the upload file input and returns the upload file result.
- * This method performs the following operations in order:<br>
- * 1. Validates the filename of the file to be uploaded.<br>
- * 2. Creates a record for the file in the database. Filename remains blank since it will be updated once the file is
- * successfully uploaded. <br>
- * 3. Writes the file to the disk. The writing is delegated to the FileWriter component. Result is a UUID. <br>
- * 4. Adds the filename to the record from step 2.<br>
- *
- * @param input UploadFileInput object containing the target URI and the file contents as  byte[].
- * @return Either an ApiError or an UploadFileResult.
- */
-@Override
-public Either<ApiError, UploadFileResult> process(UploadFileInput input) {
+    /**
+     * Processes the upload file input and returns the upload file result.
+     * This method performs the following operations in order:<br>
+     * 1. Validates the filename of the file to be uploaded.<br>
+     * 2. Creates a record for the file in the database. Filename remains blank since it will be updated once the file is
+     * successfully uploaded. <br>
+     * 3. Writes the file to the disk. The writing is delegated to the FileWriter component. Result is a UUID. <br>
+     * 4. Adds the filename to the record from step 2.<br>
+     *
+     * @param input UploadFileInput object containing the target URI and the file contents as  byte[].
+     * @return Either an ApiError or an UploadFileResult.
+     */
+    @Override
+    public Either<ApiError, UploadFileResult> process(UploadFileInput input) {
 
-    return this.validateFilename(input)
-            .flatMap(this::createFileRecord)
-            .flatMap(this::writeFile)
-            .flatMap(this::updateFilename);
-}
+        return this.validatePermissions(input)
+                .flatMap(this::validateFilename)
+                .flatMap(this::createFileRecord)
+                .flatMap(this::writeFile)
+                .flatMap(this::updateFilename);
+    }
+
+    //TODO: refactor
+    private Either<ApiError, UploadFileInput> validatePermissions(UploadFileInput input) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        if (authentication == null || authentication instanceof AnonymousAuthenticationToken) {
+            return Either.left(InvalidCredentialsError.builder().build());
+        }
+
+        String targetUsername = this.extractor.getUsername(input.getUri());
+        String currentUsername = ((MicroartUser) authentication.getDetails()).getUsername();
+
+        Boolean isOwnVault = targetUsername.equalsIgnoreCase(currentUsername);
+
+
+        if (isOwnVault) {
+            return Either.right(input);
+        }
+
+        Boolean canUploadToVault = this.vaultRepository
+                .findVaultByName(this.extractor.getVaultName(input.getUri()))
+                .map(vault -> vault.getAuthorizedUsers().contains((MicroartUser) authentication.getDetails()))
+                .orElse(false);
+
+        if (canUploadToVault) {
+            return Either.right(input);
+        }
+
+        return Either.left(InvalidCredentialsError.builder().build());
+    }
 
     private Either<ApiError, UploadFileInput> validateFilename(UploadFileInput input) {
         return Try.of(() -> {
@@ -86,7 +116,7 @@ public Either<ApiError, UploadFileResult> process(UploadFileInput input) {
     }
 
     private Either<ApiError, UploadFileInput> createFileRecord(UploadFileInput input) {
-        String vaultName = this.uriProcessor.getVaultName(input.getUri());
+        String vaultName = this.extractor.getVaultName(input.getUri());
         MicroartUser user = (MicroartUser) SecurityContextHolder
                 .getContext()
                 .getAuthentication()
