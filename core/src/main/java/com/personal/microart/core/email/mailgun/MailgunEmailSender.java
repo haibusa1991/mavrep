@@ -2,9 +2,9 @@ package com.personal.microart.core.email.mailgun;
 
 import com.personal.microart.api.errors.ApiError;
 import com.personal.microart.api.errors.ServiceUnavailableError;
-import com.personal.microart.core.email.base.Email;
-import com.personal.microart.core.email.base.EmailSender;
-import com.personal.microart.core.email.base.EmailSenderResponse;
+import com.personal.microart.core.email.sender.EmailSender;
+import com.personal.microart.core.email.sender.EmailSenderResponse;
+import com.personal.microart.core.email.sender.Email;
 import io.vavr.control.Either;
 import io.vavr.control.Try;
 import lombok.RequiredArgsConstructor;
@@ -49,7 +49,8 @@ public class MailgunEmailSender implements EmailSender {
         body.add("subject", email.getSubject());
         body.add("html", email.getHtmlBody());
 
-        return Try.of(() -> client.method(HttpMethod.POST)
+        return Try.of(() -> client
+                        .method(HttpMethod.POST)
                         .uri(this.url)
                         .header(HttpHeaders.AUTHORIZATION, "Basic " + Base64.getEncoder().encodeToString(("api:" + this.apiKey).getBytes()))
                         .bodyValue(body)

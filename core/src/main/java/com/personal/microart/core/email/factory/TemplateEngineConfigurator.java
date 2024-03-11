@@ -1,4 +1,4 @@
-package com.personal.microart.core.email.base;
+package com.personal.microart.core.email.factory;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

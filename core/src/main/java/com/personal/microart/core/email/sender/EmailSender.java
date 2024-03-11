@@ -1,8 +1,7 @@
-package com.personal.microart.core.email.base;
+package com.personal.microart.core.email.sender;
 
 import com.personal.microart.api.errors.ApiError;
 import io.vavr.control.Either;
-import org.springframework.http.ResponseEntity;
 
 /**
  * An interface for sending emails. Concrete implementations of this interface should be able to send emails.

@@ -1,4 +1,4 @@
-package com.personal.microart.core.email.base;
+package com.personal.microart.core.email.sender;
 
 import lombok.Getter;
 
