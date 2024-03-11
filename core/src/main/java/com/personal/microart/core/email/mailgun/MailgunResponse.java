@@ -1,6 +1,6 @@
 package com.personal.microart.core.email.mailgun;
 
-import com.personal.microart.core.email.base.EmailSenderResponse;
+import com.personal.microart.core.email.sender.EmailSenderResponse;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
