@@ -30,6 +30,9 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
+/**
+ * A controller that is responsible for handling requests related to user accounts - registration, login, password reset, etc.
+ */
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/user")

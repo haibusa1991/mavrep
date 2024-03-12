@@ -1,4 +1,4 @@
-package com.personal.microart.persistence.filehandler;
+package com.personal.microart.persistence.directorymanager;
 
 import com.personal.microart.persistence.errors.DeleteError;
 import com.personal.microart.persistence.errors.PersistenceError;

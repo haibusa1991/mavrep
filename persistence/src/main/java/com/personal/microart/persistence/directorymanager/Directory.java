@@ -1,4 +1,4 @@
-package com.personal.microart.persistence.filehandler;
+package com.personal.microart.persistence.directorymanager;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

@@ -14,6 +14,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
+/**
+ * A controller that is responsible for handling file upload and download requests.
+ */
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/mvn")

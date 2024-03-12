@@ -4,7 +4,9 @@ import lombok.*;
 
 import java.util.ArrayList;
 import java.util.List;
-
+/**
+ * POJO wrapper for error messages.
+ */
 @AllArgsConstructor
 @Builder
 @Getter

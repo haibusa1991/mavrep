@@ -11,13 +11,11 @@ import com.personal.microart.core.Extractor;
 import com.personal.microart.persistence.entities.MicroartUser;
 import com.personal.microart.persistence.entities.Vault;
 import com.personal.microart.persistence.errors.Error;
-import com.personal.microart.persistence.filehandler.FileReader;
+import com.personal.microart.persistence.directorymanager.FileReader;
 import com.personal.microart.persistence.repositories.VaultRepository;
 import io.vavr.control.Either;
 import io.vavr.control.Try;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.authentication.AnonymousAuthenticationToken;
-import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 

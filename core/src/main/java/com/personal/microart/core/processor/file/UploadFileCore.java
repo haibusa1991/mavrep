@@ -8,7 +8,7 @@ import com.personal.microart.core.Extractor;
 import com.personal.microart.persistence.entities.Artefact;
 import com.personal.microart.persistence.entities.MicroartUser;
 import com.personal.microart.persistence.entities.Vault;
-import com.personal.microart.persistence.filehandler.FileWriter;
+import com.personal.microart.persistence.directorymanager.FileWriter;
 import com.personal.microart.persistence.repositories.ArtefactRepository;
 import com.personal.microart.persistence.repositories.VaultRepository;
 import io.vavr.Tuple;

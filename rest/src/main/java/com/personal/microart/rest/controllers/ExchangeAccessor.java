@@ -11,6 +11,11 @@ import org.springframework.stereotype.Component;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 
+/**
+ * Helper class that is responsible for accessing the {@link HttpServletRequestImpl} from HttpServletResponse that is
+ * wrapped by Spring Security in a {@link org.springframework.security.web.firewall.FirewalledRequest FirewalledRequest}.
+ * Required in order to set the reason phrase of the response.
+ */
 @Component
 public class ExchangeAccessor {
     @SneakyThrows

@@ -7,8 +7,7 @@ import com.personal.microart.persistence.entities.Artefact;
 import com.personal.microart.persistence.entities.BlacklistedJwt;
 import com.personal.microart.persistence.entities.MicroartUser;
 import com.personal.microart.persistence.entities.Vault;
-import com.personal.microart.persistence.filehandler.FileReader;
-import com.personal.microart.persistence.filehandler.FileWriter;
+import com.personal.microart.persistence.directorymanager.FileReader;
 import com.personal.microart.persistence.repositories.ArtefactRepository;
 import com.personal.microart.persistence.repositories.BlacklistedJwtRepository;
 import com.personal.microart.persistence.repositories.UserRepository;
@@ -39,7 +38,6 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
 import java.time.ZoneOffset;
 import java.util.List;
-import java.util.Optional;
 import java.util.Random;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;

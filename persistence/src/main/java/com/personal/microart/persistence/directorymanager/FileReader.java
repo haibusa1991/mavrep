@@ -1,4 +1,4 @@
-package com.personal.microart.persistence.filehandler;
+package com.personal.microart.persistence.directorymanager;
 
 import com.personal.microart.persistence.errors.Error;
 import com.personal.microart.persistence.errors.PersistenceError;
@@ -7,7 +7,6 @@ import com.personal.microart.persistence.repositories.ArtefactRepository;
 import io.vavr.control.Either;
 import io.vavr.control.Try;
 import lombok.RequiredArgsConstructor;
-import org.hibernate.JDBCException;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
