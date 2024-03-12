@@ -12,16 +12,11 @@ import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 
 /**
- * This class is used to configure the Thymeleaf template engine for email templates.
+ * This is used to configure the Thymeleaf template engine for email templates.
  */
 @Configuration
 public class TemplateEngineConfigurator {
 
-    /**
-     * This method creates and configures a SpringTemplateEngine bean.
-     *
-     * @return a configured SpringTemplateEngine instance
-     */
     @Bean
     public TemplateEngine emailTemplateEngine() {
         final SpringTemplateEngine templateEngine = new SpringTemplateEngine();
@@ -31,9 +26,9 @@ public class TemplateEngineConfigurator {
         return templateEngine;
     }
     /**
-     * This method creates a ClassLoaderTemplateResolver that is configured to resolve HTML templates.
-     * Template location as follows: "/resources/templates/html/email/EMAIL-TEMPLATE-NAME.html" The template name
-     * is specified in the EmailGenerator implementation, along with any data required by the template.
+     * Creates a ClassLoaderTemplateResolver that is configured to resolve HTML templates.
+     * Some default values are set. Each email specifies its own template location and data, but generally
+     * "/resources/templates/html/email/EMAIL-TEMPLATE-NAME.html"
      *
      * @return a configured ClassLoaderTemplateResolver instance
      */

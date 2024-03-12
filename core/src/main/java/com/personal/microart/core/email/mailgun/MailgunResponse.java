@@ -4,6 +4,9 @@ import com.personal.microart.core.email.sender.EmailSenderResponse;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+/**
+ * Email sender response for Mailgun
+ */
 @NoArgsConstructor
 @Getter
 public class MailgunResponse implements EmailSenderResponse {

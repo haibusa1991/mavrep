@@ -4,7 +4,9 @@ import com.auth0.jwt.JWT;
 import com.personal.microart.core.auth.jwt.Token;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.stereotype.Component;
-
+/**
+ * (JWT) Token object to String converter.
+ */
 @Component
 public class TokenToString implements Converter<Token, String> {
     @Override
