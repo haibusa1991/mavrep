@@ -21,7 +21,14 @@ import static io.vavr.API.Case;
 import static io.vavr.Predicates.instanceOf;
 
 /**
- * This is implementation of the register operation for the application.
+ * A {@link RegisterOperation} implementation. It first creates a new user entity, then attempts to save it to the
+ * database. If a {@link DataIntegrityViolationException} is thrown due a conflict, e.g. username or email is
+ * already registered, the exception is mapped to a {@link ConstraintViolationError}.
+ * Returns the following errors:
+ * <ul>
+ *     <li>{@link ConstraintViolationError} if the email or username is already registered</li>
+ *     <li>{@link ServiceUnavailableError} if the database is not available</li>
+ * </ul>
  */
 @Component
 @RequiredArgsConstructor
@@ -29,13 +36,6 @@ public class RegisterCore implements RegisterOperation {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
 
-    /**
-     * It first creates a new user entity, then attempts to save it in the repository. Returns 409 if the save
-     * operation fails due to a constraint violation (e.g. duplicate email or username), 503 for any other error.
-     *
-     * @param input The registration input containing the user's email, username, and password.
-     * @return Either an ApiError or a RegisterResult.
-     */
     @Override
     public Either<ApiError, RegisterResult> process(RegisterInput input) {
         MicroartUser user = MicroartUser.builder()
@@ -50,6 +50,6 @@ public class RegisterCore implements RegisterOperation {
                 .mapLeft(throwable -> API.Match(throwable).of(
                         Case($(instanceOf(DataIntegrityViolationException.class)), exception -> ConstraintViolationError.builder().statusMessage("email or username already registered").build()),
                         Case($(), exception -> ServiceUnavailableError.builder().build())
-                        ));
+                ));
     }
 }

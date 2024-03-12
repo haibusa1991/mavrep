@@ -26,9 +26,13 @@ import java.util.Optional;
 import static io.vavr.API.*;
 
 /**
- * This component is responsible for file download operations. Gets the requested file uri and delegates to the file reader
- * to do the actual reading from the file system. Returns 404 if the file is not found or user is not authorized;
- * 503 if the file could not be read from disk.
+ * A {@link DownloadFileOperation} implementation. Gets the requested file uri and delegates to the file reader
+ * to do the actual reading from the file system. Returns the following errors:
+ * <ul>
+ *     <li>{@link FileNotFoundError} if the file is not found</li>
+ *     <li>{@link InvalidCredentialsError} if the user is not authorized to access the file</li>
+ *     <li>{@link ServiceUnavailableError} if the file could not be read from disk or database not available</li>
+ * </ul>
  */
 @RequiredArgsConstructor
 @Component

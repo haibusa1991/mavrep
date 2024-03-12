@@ -24,10 +24,14 @@ import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
 /**
- * This component is responsible for file upload operations. Gets the requested file uri and contents and delegates
- * to the file writer component to do the actual writing to the file system. Returns 400 if filename is invalid;
- * 403 if the user is not authorized to upload to the vault;
- * 409 if the artefact is already deployed; 503 if the file could not be written to disk.
+ * An {@link UploadFileOperation} implementation. Gets the requested file URI and contents and delegates
+ * to the file writer component to do the actual writing to the file system. Returns the following errors:
+ * <ul>
+ *     <li>{@link ConstraintViolationError} if the filename is invalid or the file could not be written to disk</li>
+ *     <li>{@link InvalidCredentialsError} if the user is not authorized to upload to the vault</li>
+ *     <li>{@link FileUploadError} if the file could not be written to disk</li>
+ *     <li>{@link ServiceUnavailableError} if the database is not available</li>
+ * </ul>
  */
 @RequiredArgsConstructor
 @Component
@@ -128,7 +132,7 @@ public class UploadFileCore implements UploadFileOperation {
                     return input;
                 })
                 .toEither()
-                .mapLeft(throwable -> FileUploadError.builder().build());
+                .mapLeft(ServiceUnavailableError::fromThrowable);
     }
 
     private Either<ApiError, Tuple2<String, String>> writeFile(UploadFileInput input) {

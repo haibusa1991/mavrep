@@ -23,7 +23,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
- * This is  browsing operation implementation. Response is based on the current user's authorization. Users can
+ * {@link BrowseOperation} implementation. Response is based on the current user's authorization. Users can
  * see all public vaults and their artefacts, artefacts from authorized vaults, and their own artefacts and vaults.
  */
 @Component
@@ -31,13 +31,6 @@ import java.util.stream.Collectors;
 public class BrowseCore implements BrowseOperation {
     private final VaultRepository vaultRepository;
 
-    /**
-     * Processes the browse input and returns a browse result. Finds all artefacts that are visible to the
-     * current user and transforms them into Content objects, which are sorted by name and returned.
-     *
-     * @param input The browse input.
-     * @return The browse result.
-     */
     @Override
     public Either<ApiError, BrowseResult> process(BrowseInput input) {
         return Try.of(() -> BrowseResult
@@ -53,13 +46,6 @@ public class BrowseCore implements BrowseOperation {
                 .mapLeft(throwable -> ServiceUnavailableError.builder().build());
     }
 
-    /**
-     * Builds a Content object from the artefact and the URI.
-     *
-     * @param artefact The artefact.
-     * @param uri      The URI.
-     * @return Content object that can be serialized to JSON.
-     */
     private Content getContent(Artefact artefact, String uri) {
         String remainingUri = artefact
                 .getUri()
@@ -109,8 +95,6 @@ public class BrowseCore implements BrowseOperation {
      * Depending on the user's authorization, returns a set of findable artefacts. Public artefacts are always findable.
      * Authenticated users see public and their own artefacts. If user is authorized to a vault(s), they see its/their
      * artefacts as well.
-     *
-     * @return A set of Artefacts
      */
     private Set<Artefact> getFindableArtefacts() {
 

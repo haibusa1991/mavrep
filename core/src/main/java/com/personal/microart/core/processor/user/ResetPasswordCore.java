@@ -24,6 +24,15 @@ import java.time.ZoneOffset;
 import static io.vavr.API.*;
 import static io.vavr.Predicates.instanceOf;
 
+/**
+ * A {@link ResetPasswordOperation} implementation. User provides a reset token and a new password. The application
+ * verifies the token, invalidates it, and updates the user's password.
+ * Returns the following errors:
+ * <ul>
+ *     <li>{@link TokenInvalidError} if the token is invalid or expired</li>
+ *     <li>{@link ServiceUnavailableError} if the database is not available</li>
+ * </ul>
+ */
 @Component
 @RequiredArgsConstructor
 public class ResetPasswordCore implements ResetPasswordOperation {
