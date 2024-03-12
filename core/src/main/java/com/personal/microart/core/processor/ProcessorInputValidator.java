@@ -17,7 +17,7 @@ import java.util.List;
 
 /**
  * This component is responsible for validating the input of any processor.Collects all the ConstraintValidation
- * exceptions and returning them as an {@link ApiError}. If no errors are found, the input is returned.
+ * exceptions and returning them as an {@link ConstraintViolationError}. If no errors are found, the input is returned.
  * Custom ValidatorFactory is used to enable Spring DI for custom validators, e.g.
  * {@link com.personal.microart.validation.constraints.Rfc5322Email @Rfc5322Email}
  *

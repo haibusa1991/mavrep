@@ -29,9 +29,7 @@ public interface EmailFactory {
      *     <li>{@link com.personal.microart.core.email.sender.EmailParameter#TOKEN_VALIDITY}: The validity of the password recovery token</li>
      * </ul>
      *
-     * @param emailData A map containing the parameters for the email. The keys are of type EmailParameter,
-     *                  which could represent various aspects of the email such as the recipient's address,
-     *                  the subject of the email, etc. The values are the corresponding details for these parameters.
+     * @param emailData A map containing the parameters for the email.
      * @return An Email object representing the password recovery email.
      */
     Email getPasswordRecoveryEmail(Map<EmailParameter, String> emailData);
