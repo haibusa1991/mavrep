@@ -12,8 +12,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * This abstract class provides a base implementation for a filter core. It is designed to be extended by all filter
- * cores.
+ * This abstract class provides a base implementation for a filter core. Extended by all filter cores.
  */
 public abstract class BaseFilterCore implements FilterCore {
     /**
@@ -26,15 +25,15 @@ public abstract class BaseFilterCore implements FilterCore {
      * This method checks if the filter should be applied to a given HTTP request based on its method and URI.
      *
      * @param request           The HTTP request to check.
-     * @param filteredEndpoints A map where the keys are HTTP methods and the values are lists of URIs.
+     * @param protectedEndpoints A map where the keys are HTTP methods and the values are lists of URIs.
      *                          If the request's method and URI match any of these, the method will return true.
      * @return True if the endpoint is protected, false otherwise.
      */
-    public Boolean isProtectedEndpoint(HttpServletRequest request, Map<HttpMethod, List<String>> filteredEndpoints) {
+    public Boolean isProtectedEndpoint(HttpServletRequest request, Map<HttpMethod, List<String>> protectedEndpoints) {
         String method = request.getMethod();
         String uri = request.getRequestURI();
 
-        return filteredEndpoints
+        return protectedEndpoints
                 .get(HttpMethod.valueOf(method.toUpperCase()))
                 .stream()
                 .anyMatch(filteredUri -> context.getBean(AntPathMatcher.class).match(filteredUri, uri));

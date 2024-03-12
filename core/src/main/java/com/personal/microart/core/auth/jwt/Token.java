@@ -9,7 +9,7 @@ import lombok.Getter;
 import java.time.Instant;
 
 /**
- * Token is a class that represents a JWT token.
+ * POJO representing a JWT.
  * It contains the email and username of the user, the issued at and expiry times of the token, and the signing algorithm used.
  */
 @AllArgsConstructor

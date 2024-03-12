@@ -28,16 +28,8 @@ import java.util.Optional;
 import java.util.Set;
 
 /**
- * The JwtAuthFilterCore class is a component in the application that handles the authorization and authentication of
- * HTTP requests using JWT (JSON Web Token). It extends the BaseFilterCore class and provides implementations for the
- * isAuthorized and getAuthentication methods.<br>
- * The isAuthorized method checks whether an incoming HTTP request is authorized. It allows all requests to the "/browse"
- * endpoint and unrestricted download access to all public vaults. For private vaults, it checks if the JWT token
- * in the request header corresponds to a user who is authorized to access the vault.<br>
- * The getAuthentication method authenticates a user based on the JWT token present in the request header.
- * If the token is valid and corresponds to an existing user, it creates a new authentication token for the user.
- * If the token is not present or invalid, it returns the current authentication token from the security context.
- * The current token should be an AnonymousAuthenticationToken if the user hasn't been authenticated in some other way.
+ * JwtAuthFilterCore handles the core logic of JWT authentication - whether Authorization header is present,
+ * whether the token is valid, if the user is not disabled or the JWT is blacklisted.
  */
 @Component
 @RequiredArgsConstructor
@@ -52,6 +44,18 @@ public class JwtAuthFilterCore extends BaseFilterCore {
         super.setContext(this.context);
     }
 
+    /**
+     * Checks whether the request has an Authorization header, verifies if the value is a valid JWT,
+     * and whether the JWT is not blacklisted. If all checks pass, it returns a
+     * {@link JwtAuthenticationToken} with the user's details. If any of the checks fail, the current
+     * AuthenticationToken is returned. By default, that is a
+     * {@link org.springframework.security.authentication.AnonymousAuthenticationToken AnonymousAuthenticationToken}.
+     * Since the JWT filter is after the BasicAuthFilter, it is possible that the user is already authenticated by a
+     * {@link BasicAuthenticationToken}. In that case, the method will return the current token.
+     *
+     * @param request The HTTP request from which to retrieve the authentication information.
+     * @return {@link JwtAuthenticationToken}
+     */
     @Override
     public Authentication getAuthentication(HttpServletRequest request) {
         if (!this.isValidJwt(request) || this.isBlacklisted(request)) {

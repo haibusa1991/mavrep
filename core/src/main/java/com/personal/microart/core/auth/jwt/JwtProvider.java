@@ -79,6 +79,11 @@ public class JwtProvider {
         }).getOrElseGet(ignored -> Token.empty());
     }
 
+    /**
+     * Validates a JWT token from a raw header.
+     * @param rawHeader The raw header containing the JWT token.
+     * @return true if the token is valid, false otherwise.
+     */
 
     public Boolean isValidJwt(String rawHeader) {
         return Try.of(() -> {

@@ -25,7 +25,8 @@ import java.util.Optional;
 import java.util.Set;
 
 /**
- * BasicAuthFilterCore is a component that handles the core logic of basic authentication.
+ * BasicAuthFilterCore handles the core logic of basic authentication - whether Authorization header is present,
+ * whether the user exists and whether the password is correct.
  */
 @Component
 @RequiredArgsConstructor
@@ -40,7 +41,16 @@ public class BasicAuthFilterCore extends BaseFilterCore {
         super.setContext(this.context);
     }
 
-
+    /**
+     * Checks whether the request has an Authorization header, decodes it and checks whether the user exists,
+     * whether it is not disabled, and if the password is correct. If all checks pass, it returns a
+     * {@link BasicAuthenticationToken} with the user's details. If any of the checks fail, the current
+     * AuthenticationToken is returned. By default, that is a
+     * {@link org.springframework.security.authentication.AnonymousAuthenticationToken AnonymousAuthenticationToken}.
+     *
+     * @param request The HTTP request from which to retrieve the authentication information.
+     * @return {@link BasicAuthenticationToken}
+     */
     @Override
     public Authentication getAuthentication(HttpServletRequest request) {
         MicroartUser user = this.getCurrentUser(request);
