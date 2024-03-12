@@ -16,6 +16,15 @@ import java.io.FileInputStream;
 import static io.vavr.API.*;
 import static io.vavr.Predicates.instanceOf;
 
+/**
+ * Reads a file from the file system based on the file name and relative path, e.g. /01fe/ebf00a68-7903-4820-917a-f1ecfa3d418f
+ * and returns the file content as a byte array. Can return the following errors:
+ * <ul>
+ *     <li>{@link Error#FILE_NOT_FOUND_ERROR} if the file is not found</li>
+ *     <li>{@link Error#READ_ERROR} if the file cannot be read</li>
+ * </ul>
+
+ */
 @Component
 @RequiredArgsConstructor
 public class FileReader {
@@ -37,7 +46,7 @@ public class FileReader {
                 .toEither()
                 .mapLeft(throwable -> Match(throwable).of(
                         Case($(instanceOf(IllegalArgumentException.class)), ignored -> ReadError.builder().error(Error.FILE_NOT_FOUND_ERROR).build()),
-                        Case($(instanceOf(JDBCException.class)), ignored -> ReadError.builder().error(Error.READ_ERROR).build())
+                        Case($(), ignored -> ReadError.builder().error(Error.READ_ERROR).build())
                 ));
     }
 

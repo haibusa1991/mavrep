@@ -1,7 +1,9 @@
 package com.personal.microart.persistence.errors;
 
 import lombok.Getter;
-
+/**
+ * Base implementation of the {@link PersistenceError} interface.
+ */
 @Getter
 public abstract class BasePersistenceError implements PersistenceError {
     private final Error error;
