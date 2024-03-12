@@ -41,35 +41,34 @@ public class DownloadFileCore implements DownloadFileOperation {
     public Either<ApiError, DownloadFileResult> process(DownloadFileInput input) {
         return verifyPermissions(input)
                 .flatMap(this::downloadFile);
-
     }
 
     private Either<ApiError, DownloadFileInput> verifyPermissions(DownloadFileInput input) {
-        //TODO: refactor to look prettier
-
         String vaultName = this.extractor.getVaultName(input.getUri());
 
-        Optional<Vault> vaultOptional = this.vaultRepository.findVaultByName(vaultName);
+        return this.vaultRepository.findVaultByName(vaultName)
+                .map(vault -> verifyVaultPermissions(vault, input))
+                .orElse(Either.left(InvalidCredentialsError.builder().build()));
+    }
 
-        if (vaultOptional.isEmpty()) {
-            return Either.left(InvalidCredentialsError.builder().build());
-        }
+    private Either<ApiError, DownloadFileInput> verifyVaultPermissions(Vault vault, DownloadFileInput input) {
+        return Try.of(() -> {
+                    if (vault.isPublic()) {
+                        return input;
+                    }
 
-        Vault vault = vaultOptional.get();
+                    MicroartUser currentUser = (MicroartUser) SecurityContextHolder
+                            .getContext()
+                            .getAuthentication()
+                            .getDetails();
 
-        if(vault.isPublic()){
-            return Either.right(input);
-        }
-
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-
-        if(authentication instanceof AnonymousAuthenticationToken){
-            return Either.left(InvalidCredentialsError.builder().build());
-        }
-
-        return vault.getAuthorizedUsers().contains((MicroartUser) authentication.getDetails())
-                ? Either.right(input)
-                : Either.left(InvalidCredentialsError.builder().build());
+                    return Optional.of(vault.getAuthorizedUsers().contains(currentUser))
+                            .filter(contains -> contains)
+                            .map(ignored -> input)
+                            .orElseThrow(IllegalArgumentException::new);
+                })
+                .toEither()
+                .mapLeft(error -> InvalidCredentialsError.builder().build());
     }
 
     private Either<ApiError, DownloadFileResult> downloadFile(DownloadFileInput input) {

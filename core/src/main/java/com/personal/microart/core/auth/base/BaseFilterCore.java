@@ -10,7 +10,6 @@ import org.springframework.util.AntPathMatcher;
 
 import java.util.List;
 import java.util.Map;
-//TODO: revise the implementation of this class and all filters
 
 /**
  * This abstract class provides a base implementation for a filter core. It is designed to be extended by all filter

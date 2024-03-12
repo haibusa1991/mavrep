@@ -3,7 +3,7 @@ package com.personal.microart.api.errors;
 import lombok.Getter;
 
 /**
- * Base implementation of the {@link ApiError} interface. All errors should extend this class.
+ * Base implementation of the {@link ApiError} interface.
  */
 @Getter
 public abstract class BaseApiError implements ApiError {
