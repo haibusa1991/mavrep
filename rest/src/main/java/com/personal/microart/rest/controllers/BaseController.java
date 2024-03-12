@@ -14,6 +14,10 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 
+/**
+ * Base class for all controllers. It provides a common error handling mechanism for all controllers. Provides a
+ * method to convert a processor result to a ResponseEntity while manually setting the status code.
+ */
 public abstract class BaseController {
 
     @Setter
@@ -31,6 +35,9 @@ public abstract class BaseController {
                 : new ResponseEntity<>(processorResult.get(), status);
     }
 
+    /**
+     * Handles the result of the file upload and download operations. Sets the filename and content disposition as a response header.
+     */
     public ResponseEntity<byte[]> handleMvn(Either<ApiError, DownloadFileResult> processorResult, HttpServletResponse response) {
         if (processorResult.isLeft()) {
             return this.handleMvnError(processorResult, response);
@@ -41,7 +48,25 @@ public abstract class BaseController {
         return new ResponseEntity<>(processorResult.get().getContent(), HttpStatus.OK);
     }
 
-
+    /**
+     * Error handler and wrapper for the error response. Uses the {@link ExchangeAccessor} to set the current
+     * ApiError's status message as the reason phrase of the response. All ApiErrors are returned as a JSON object
+     * with the following structure:
+     * <pre>
+     * {@code
+     *
+     *{
+     *   "errorCode": 400,
+     *   "uri": "/user/register",
+     *   "dateTime": "2024-03-12 20:15:50",
+     *   "errors": [
+     *     "username length must be between 1 and 40",
+     *     "email must be a well-formed email address"
+     *   ]
+     * }
+     *
+     * }
+     */
     private ResponseEntity<?> handleError(Either<ApiError, ?> processorResult, HttpServletResponse response) {
         ApiError error = processorResult.getLeft();
         HttpServerExchange exchange = this.exchangeAccessor.getExchange(response);
@@ -60,7 +85,10 @@ public abstract class BaseController {
                 .body(wrapper);
     }
 
-
+    /**
+     * Error handler for the file upload and download operations. Sets the status message of the ApiError as the reason
+     * phrase of the response.
+     */
     private ResponseEntity<byte[]> handleMvnError(Either<ApiError, ?> processorResult, HttpServletResponse response) {
         ApiError error = processorResult.getLeft();
         this.exchangeAccessor.getExchange(response)

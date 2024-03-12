@@ -27,7 +27,7 @@ public class SecurityConfiguration {
                 .addFilterBefore(basicAuthFilter, UsernamePasswordAuthenticationFilter.class)
                 .addFilterBefore(jwtAuthFilter, BasicAuthFilter.class)
                 .authorizeHttpRequests(customizer -> customizer.requestMatchers("/**").permitAll())
-                .cors(AbstractHttpConfigurer::disable)
+                .cors(AbstractHttpConfigurer::disable) //TODO: enable and properly configure
                 .csrf(AbstractHttpConfigurer::disable)
                 .sessionManagement(c -> c.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .build();

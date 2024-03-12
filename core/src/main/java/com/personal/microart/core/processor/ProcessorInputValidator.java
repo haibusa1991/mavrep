@@ -16,10 +16,10 @@ import org.springframework.validation.beanvalidation.SpringConstraintValidatorFa
 import java.util.List;
 
 /**
- * This class is responsible for validating the input of any processor. Wraps the input in an Either object by
- * collecting all the ConstraintValidation exceptions and returning them as an ApiError. If no errors are found, the
- * input is returned as a right Either. Custom ValidatorFactory is used to enable Spring DI in the custom validators
- * (e.g. @Rfc5322Email)
+ * This component is responsible for validating the input of any processor.Collects all the ConstraintValidation
+ * exceptions and returning them as an {@link ConstraintViolationError}. If no errors are found, the input is returned.
+ * Custom ValidatorFactory is used to enable Spring DI for custom validators, e.g.
+ * {@link com.personal.microart.validation.constraints.Rfc5322Email @Rfc5322Email}
  *
  */
 @Component
@@ -27,10 +27,6 @@ public class ProcessorInputValidator {
     private final Validator validator;
 
     public ProcessorInputValidator(final AutowireCapableBeanFactory autowireCapableBeanFactory) {
-//        try (ValidatorFactory validatorFactory = Validation.buildDefaultValidatorFactory()) {
-//            this.validator = validatorFactory.getValidator();
-//        }
-
         this.validator = Validation
                 .byProvider(HibernateValidator.class)
                 .configure()

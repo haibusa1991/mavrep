@@ -8,7 +8,7 @@ import com.personal.microart.core.Extractor;
 import com.personal.microart.persistence.entities.Artefact;
 import com.personal.microart.persistence.entities.MicroartUser;
 import com.personal.microart.persistence.entities.Vault;
-import com.personal.microart.persistence.filehandler.FileWriter;
+import com.personal.microart.persistence.directorymanager.FileWriter;
 import com.personal.microart.persistence.repositories.ArtefactRepository;
 import com.personal.microart.persistence.repositories.VaultRepository;
 import io.vavr.Tuple;
@@ -16,8 +16,6 @@ import io.vavr.Tuple2;
 import io.vavr.control.Either;
 import io.vavr.control.Try;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.authentication.AnonymousAuthenticationToken;
-import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -26,9 +24,14 @@ import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
 /**
- * This component is responsible for file upload operations. Gets the requested file uri and contents and delegates
- * to the file writer component to do the actual writing to the file system. Returns 400 if filename is invalid;
- * 409 if the artefact is already deployed; 503 if the file could not be written to disk.
+ * An {@link UploadFileOperation} implementation. Gets the requested file URI and contents and delegates
+ * to the file writer component to do the actual writing to the file system. Returns the following errors:
+ * <ul>
+ *     <li>{@link ConstraintViolationError} if the filename is invalid or the file could not be written to disk</li>
+ *     <li>{@link InvalidCredentialsError} if the user is not authorized to upload to the vault</li>
+ *     <li>{@link FileUploadError} if the file could not be written to disk</li>
+ *     <li>{@link ServiceUnavailableError} if the database is not available</li>
+ * </ul>
  */
 @RequiredArgsConstructor
 @Component
@@ -39,57 +42,42 @@ public class UploadFileCore implements UploadFileOperation {
     private final VaultRepository vaultRepository;
     private final Extractor extractor;
 
-
-    /**
-     * Processes the upload file input and returns the upload file result.
-     * This method performs the following operations in order:<br>
-     * 1. Validates the filename of the file to be uploaded.<br>
-     * 2. Creates a record for the file in the database. Filename remains blank since it will be updated once the file is
-     * successfully uploaded. <br>
-     * 3. Writes the file to the disk. The writing is delegated to the FileWriter component. Result is a UUID. <br>
-     * 4. Adds the filename to the record from step 2.<br>
-     *
-     * @param input UploadFileInput object containing the target URI and the file contents as  byte[].
-     * @return Either an ApiError or an UploadFileResult.
-     */
     @Override
     public Either<ApiError, UploadFileResult> process(UploadFileInput input) {
 
-        return this.validatePermissions(input)
+        return this.validateVaultOwnership(input)
                 .flatMap(this::validateFilename)
                 .flatMap(this::createFileRecord)
                 .flatMap(this::writeFile)
                 .flatMap(this::updateFilename);
     }
 
-    //TODO: refactor
-    private Either<ApiError, UploadFileInput> validatePermissions(UploadFileInput input) {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+    private Either<ApiError, UploadFileInput> validateVaultOwnership(UploadFileInput input) {
+        return Try.of(() -> {
+                    MicroartUser user = (MicroartUser) SecurityContextHolder
+                            .getContext()
+                            .getAuthentication()
+                            .getDetails();
 
-        if (authentication == null || authentication instanceof AnonymousAuthenticationToken) {
-            return Either.left(InvalidCredentialsError.builder().build());
-        }
+                    Boolean isOwnVault = this.extractor.getUsername(input.getUri()).equalsIgnoreCase(user.getUsername());
 
-        String targetUsername = this.extractor.getUsername(input.getUri());
-        String currentUsername = ((MicroartUser) authentication.getDetails()).getUsername();
+                    if (isOwnVault || isAuthorized(user, input.getUri())) {
+                        return input;
+                    }
 
-        Boolean isOwnVault = targetUsername.equalsIgnoreCase(currentUsername);
+                    throw new IllegalArgumentException();
+
+                })
+                .toEither()
+                .mapLeft(InvalidCredentialsError::fromThrowable);
+    }
 
 
-        if (isOwnVault) {
-            return Either.right(input);
-        }
-
-        Boolean canUploadToVault = this.vaultRepository
-                .findVaultByName(this.extractor.getVaultName(input.getUri()))
-                .map(vault -> vault.getAuthorizedUsers().contains((MicroartUser) authentication.getDetails()))
+    private Boolean isAuthorized(MicroartUser user, String uri) {
+        return this.vaultRepository
+                .findVaultByName(this.extractor.getVaultName(uri))
+                .map(vault -> vault.getAuthorizedUsers().contains(user))
                 .orElse(false);
-
-        if (canUploadToVault) {
-            return Either.right(input);
-        }
-
-        return Either.left(InvalidCredentialsError.builder().build());
     }
 
     private Either<ApiError, UploadFileInput> validateFilename(UploadFileInput input) {
@@ -112,7 +100,7 @@ public class UploadFileCore implements UploadFileOperation {
 
                 })
                 .toEither()
-                .mapLeft(throwable -> ValidationError.builder().message(throwable.getMessage()).build());
+                .mapLeft(throwable -> ConstraintViolationError.builder().statusMessage(throwable.getMessage()).build());
     }
 
     private Either<ApiError, UploadFileInput> createFileRecord(UploadFileInput input) {
@@ -144,7 +132,7 @@ public class UploadFileCore implements UploadFileOperation {
                     return input;
                 })
                 .toEither()
-                .mapLeft(throwable -> FileUploadError.builder().build());
+                .mapLeft(ServiceUnavailableError::fromThrowable);
     }
 
     private Either<ApiError, Tuple2<String, String>> writeFile(UploadFileInput input) {

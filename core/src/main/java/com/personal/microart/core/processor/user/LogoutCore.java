@@ -22,6 +22,15 @@ import java.time.ZoneOffset;
 import static io.vavr.API.*;
 import static io.vavr.Predicates.instanceOf;
 
+/**
+ * A {@link LogoutOperation} implementation. Verifies whether the JWT is valid and if it is, and the token
+ * is not blacklisted, it blacklists it. Invalid or already blacklisted tokens are ignored and a {@link SilentFailError}
+ * is returned. Returns the following errors:
+ * <ul>
+ *     <li>{@link SilentFailError} if no action is required, e.g. the token is invalid or already blacklisted</li>
+ *     <li>{@link ServiceUnavailableError} if the database is not available</li>
+ * </ul>
+ */
 @Component
 @RequiredArgsConstructor
 public class LogoutCore implements LogoutOperation {

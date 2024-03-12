@@ -9,6 +9,9 @@ import java.util.Arrays;
 import java.util.Base64;
 import java.util.Optional;
 
+/**
+ * Raw Authorization header to BasicAuth object converter.
+ */
 @Component
 public class StringToBasicAuth implements Converter<String, BasicAuth> {
 

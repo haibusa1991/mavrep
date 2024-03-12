@@ -18,6 +18,10 @@ import org.springframework.web.reactive.function.client.WebClient;
 
 import java.util.Base64;
 
+/**
+ * Mailgun implementation of EmailSender. This component is responsible for sending emails using the Mailgun API.
+
+ */
 @Component
 @RequiredArgsConstructor
 public class MailgunEmailSender implements EmailSender {
@@ -31,12 +35,12 @@ public class MailgunEmailSender implements EmailSender {
     private String url;
 
     /**
-     * This method is responsible for sending an email. Uses blocking implementation of WebClient. Blocking is requried
-     * in order to return 503 in case that the Mailgun API is not available, e.g. network issues, expired API key,
-     * blocked domain or account, etc. Response is available, should we want to save id data in local DB.
-     * In case that we are not interested in returning 503 or saving the request, we can use non-blocking call.
+     * Uses blocking implementation of WebClient. Blocking is required  in order to return 503 in case that the
+     * Mailgun API is not available, e.g. network issues, expired API key, blocked domain or account, etc.
+     * Response is available, in case that we are interested in saving the request. If we are not interested in
+     * the response, we can use non-blocking call.
      *
-     * @param email The email to be sent.
+     * @param email The {@link Email} to be sent.
      * @return Either an ApiError or an EmailSenderResponse object.
      */
     @Override

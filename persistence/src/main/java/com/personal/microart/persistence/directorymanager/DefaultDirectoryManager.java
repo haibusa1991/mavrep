@@ -1,4 +1,4 @@
-package com.personal.microart.persistence.filehandler;
+package com.personal.microart.persistence.directorymanager;
 
 import com.personal.microart.persistence.errors.Error;
 import com.personal.microart.persistence.errors.PersistenceError;
@@ -16,9 +16,15 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 
+/**
+ * Default implementation of the {@link DirectoryManager}. Stores the files in hexadecimal numbered directories,
+ * starting from 00. When the maximum directory size or file count is reached, a new directory is created.
+ * Limits are set in the application properties. Current directory is stored in a cache to avoid unnecessary
+ * file system operations. Cache is invalidated when a new directory is created.
+ */
 @Component
 @RequiredArgsConstructor
-public class DirectoryManager {
+public class DefaultDirectoryManager implements DirectoryManager {
 
     @Value("${SAVE_LOCATION}")
     private String SAVE_LOCATION;
@@ -33,6 +39,7 @@ public class DirectoryManager {
     private final CacheManager cacheManager;
 
     @Cacheable(CACHEABLE_NAME)
+    @Override
     public Either<PersistenceError, String> getActiveDirectory() {
         return Try.withResources(() -> Files.list(Path.of(this.SAVE_LOCATION)))
                 .of(stream -> {
@@ -63,6 +70,7 @@ public class DirectoryManager {
         }
     }
 
+    @Override
     public Either<PersistenceError, String> updateActiveDirectory(String currentActiveDirectory, String persistedFileName) {
         return Try
                 .withResources(() -> Files.walk(Path.of(this.SAVE_LOCATION + "/" + currentActiveDirectory)))
@@ -89,6 +97,7 @@ public class DirectoryManager {
                 .mapLeft(throwable -> WriteError.builder().message(throwable.getMessage()).build());
     }
 
+    @Override
     public Either<PersistenceError, List<Directory>> getAllFiles() {
         return Try.withResources(() -> Files.list(Path.of(this.SAVE_LOCATION)))
                 .of(files -> files.filter(Files::isDirectory)

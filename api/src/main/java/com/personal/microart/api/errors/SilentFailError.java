@@ -4,7 +4,10 @@ import lombok.Builder;
 
 /**
  * This a special type of API error that fails silently. Even if it is a failure, it does not return an error message.
- * Used specifically for cases where the error is not critical and the user does not need to be informed about it.
+ * Used when the client should not be informed of the failure, e.g. trying to reset a password and provided email is
+ * not found in the database.
+ * Provides a static factory method to create an instance of the error.
+ * Error contains HTTP status code to 204 (No Content) and an empty error message.
  */
 public class SilentFailError extends BaseApiError {
     @Builder

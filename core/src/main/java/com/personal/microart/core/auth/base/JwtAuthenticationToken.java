@@ -5,7 +5,9 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.GrantedAuthority;
 
 import java.util.Collection;
-
+/**
+ * This class represents a JWT authentication. Used for easy identification of the authentication type.
+ */
 public class JwtAuthenticationToken extends UsernamePasswordAuthenticationToken {
     @Getter
     private final AuthenticationType type = AuthenticationType.JWT;

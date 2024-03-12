@@ -1,7 +1,9 @@
 package com.personal.microart.api.operations.browse;
 
 import lombok.*;
-
+/**
+ * Provides structured way to represent the content of a vault for easy frontend rendering.
+ */
 @Getter
 @Setter(AccessLevel.PRIVATE)
 @Builder

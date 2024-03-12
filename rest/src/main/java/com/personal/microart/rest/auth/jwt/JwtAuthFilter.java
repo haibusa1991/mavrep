@@ -6,6 +6,10 @@ import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
+/**
+ * A filter that is responsible for authenticating requests using the JWT Authentication scheme. All coming from
+ * the front-end are authenticated using this filter. Excludes the /user/** endpoints.
+ */
 @Component
 @RequiredArgsConstructor
 public class JwtAuthFilter extends BaseFilter {

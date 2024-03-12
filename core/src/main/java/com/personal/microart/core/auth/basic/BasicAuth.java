@@ -4,8 +4,7 @@ import lombok.Builder;
 import lombok.Getter;
 
 /**
- * This class represents the basic authentication credentials.
- * It contains the username and password for basic authentication.
+ * POJO containing username and password for basic authentication information.
  */
 @Builder
 @Getter

@@ -5,7 +5,7 @@ import com.personal.microart.persistence.entities.MicroartUser;
 import com.personal.microart.persistence.entities.Vault;
 import com.personal.microart.persistence.errors.Error;
 import com.personal.microart.persistence.errors.ReadError;
-import com.personal.microart.persistence.filehandler.FileReader;
+import com.personal.microart.persistence.directorymanager.FileReader;
 import com.personal.microart.persistence.repositories.ArtefactRepository;
 import com.personal.microart.persistence.repositories.UserRepository;
 import com.personal.microart.persistence.repositories.VaultRepository;
@@ -37,7 +37,6 @@ import java.util.Random;
 
 import static io.vavr.API.$;
 import static io.vavr.API.Case;
-import static io.vavr.Predicates.instanceOf;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;

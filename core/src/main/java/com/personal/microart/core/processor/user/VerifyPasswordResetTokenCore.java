@@ -19,6 +19,15 @@ import java.time.ZoneOffset;
 import static io.vavr.API.*;
 import static io.vavr.Predicates.instanceOf;
 
+/**
+ * A {@link VerifyPasswordResetTokenOperation} implementation. User provides a reset token and the application verifies
+ * whether the token is valid - existing, not expired, and not used.
+ * Returns the following errors:
+ * <ul>
+ *     <li>{@link TokenInvalidError} if the token is non-existent, invalid or expired</li>
+ *     <li>{@link ServiceUnavailableError} if the database is not available</li>
+ * </ul>
+ */
 @Component
 @RequiredArgsConstructor
 public class VerifyPasswordResetTokenCore implements VerifyPasswordResetTokenOperation {

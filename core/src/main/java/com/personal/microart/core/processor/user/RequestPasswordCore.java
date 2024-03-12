@@ -27,10 +27,14 @@ import static io.vavr.API.*;
 import static io.vavr.Predicates.instanceOf;
 
 /**
- * This is RequestPasswordInput implementation. EmailGenerator must be explicitly defined in the constructor.
- * In case the user provides email that does not exist in the database, the application will return a SilentFailError.
- * This is a special case that returns 204, but it is still an error. The application will return 503 in case of any
- * other error, e.g. EmailSender is unable to send an email.
+ * A {@link RequestPasswordOperation} implementation. User provides an email and the application sends a
+ * {@link com.personal.microart.core.email.factory.emails.PasswordRecoveryEmail PasswordRecoveryEmail} to the user.
+ * In case the user provides email that does not exist in the database, the application will return a {@link SilentFailError}.
+ * Returns the following errors:
+ * <ul>
+ *     <li>{@link SilentFailError} if the email does not exist in the database</li>
+ *     <li>{@link ServiceUnavailableError} if the database is not available or {@link EmailSender} fails to send the email</li>
+ * </ul>
  */
 
 @Component

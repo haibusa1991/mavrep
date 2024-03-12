@@ -1,4 +1,4 @@
-package com.personal.microart.persistence.filehandler;
+package com.personal.microart.persistence.directorymanager;
 
 import com.personal.microart.persistence.entities.Artefact;
 import com.personal.microart.persistence.repositories.ArtefactRepository;
@@ -12,12 +12,12 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Component
-@RequiredArgsConstructor
+@RequiredArgsConstructor //TODO: split functionality between the respective Schedulers in Core
 public class OrphanManager implements CommandLineRunner { //the name of the manager is 'Grelod the Kind'. FYI
 
     private final ArtefactRepository artefactRepository;
     private final FileDeleter fileDeleter;
-    private final DirectoryManager directoryManager;
+    private final DefaultDirectoryManager directoryManager;
 
     @Override
     public void run(String... args) {

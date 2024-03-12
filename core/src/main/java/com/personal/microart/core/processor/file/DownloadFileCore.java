@@ -11,13 +11,11 @@ import com.personal.microart.core.Extractor;
 import com.personal.microart.persistence.entities.MicroartUser;
 import com.personal.microart.persistence.entities.Vault;
 import com.personal.microart.persistence.errors.Error;
-import com.personal.microart.persistence.filehandler.FileReader;
+import com.personal.microart.persistence.directorymanager.FileReader;
 import com.personal.microart.persistence.repositories.VaultRepository;
 import io.vavr.control.Either;
 import io.vavr.control.Try;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.authentication.AnonymousAuthenticationToken;
-import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 
@@ -26,9 +24,13 @@ import java.util.Optional;
 import static io.vavr.API.*;
 
 /**
- * This component is responsible for file download operations. Gets the requested file uri and delegates to the file reader
- * to do the actual reading from the file system. Returns 404 if the file is not found or user is not authorized;
- * 503 if the file could not be read from disk.
+ * A {@link DownloadFileOperation} implementation. Gets the requested file uri and delegates to the file reader
+ * to do the actual reading from the file system. Returns the following errors:
+ * <ul>
+ *     <li>{@link FileNotFoundError} if the file is not found</li>
+ *     <li>{@link InvalidCredentialsError} if the user is not authorized to access the file</li>
+ *     <li>{@link ServiceUnavailableError} if the file could not be read from disk or database not available</li>
+ * </ul>
  */
 @RequiredArgsConstructor
 @Component
@@ -41,35 +43,34 @@ public class DownloadFileCore implements DownloadFileOperation {
     public Either<ApiError, DownloadFileResult> process(DownloadFileInput input) {
         return verifyPermissions(input)
                 .flatMap(this::downloadFile);
-
     }
 
     private Either<ApiError, DownloadFileInput> verifyPermissions(DownloadFileInput input) {
-        //TODO: refactor to look prettier
-
         String vaultName = this.extractor.getVaultName(input.getUri());
 
-        Optional<Vault> vaultOptional = this.vaultRepository.findVaultByName(vaultName);
+        return this.vaultRepository.findVaultByName(vaultName)
+                .map(vault -> verifyVaultPermissions(vault, input))
+                .orElse(Either.left(InvalidCredentialsError.builder().build()));
+    }
 
-        if (vaultOptional.isEmpty()) {
-            return Either.left(InvalidCredentialsError.builder().build());
-        }
+    private Either<ApiError, DownloadFileInput> verifyVaultPermissions(Vault vault, DownloadFileInput input) {
+        return Try.of(() -> {
+                    if (vault.isPublic()) {
+                        return input;
+                    }
 
-        Vault vault = vaultOptional.get();
+                    MicroartUser currentUser = (MicroartUser) SecurityContextHolder
+                            .getContext()
+                            .getAuthentication()
+                            .getDetails();
 
-        if(vault.isPublic()){
-            return Either.right(input);
-        }
-
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-
-        if(authentication instanceof AnonymousAuthenticationToken){
-            return Either.left(InvalidCredentialsError.builder().build());
-        }
-
-        return vault.getAuthorizedUsers().contains((MicroartUser) authentication.getDetails())
-                ? Either.right(input)
-                : Either.left(InvalidCredentialsError.builder().build());
+                    return Optional.of(vault.getAuthorizedUsers().contains(currentUser))
+                            .filter(contains -> contains)
+                            .map(ignored -> input)
+                            .orElseThrow(IllegalArgumentException::new);
+                })
+                .toEither()
+                .mapLeft(error -> InvalidCredentialsError.builder().build());
     }
 
     private Either<ApiError, DownloadFileResult> downloadFile(DownloadFileInput input) {

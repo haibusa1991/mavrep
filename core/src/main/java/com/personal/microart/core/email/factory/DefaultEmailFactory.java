@@ -10,7 +10,7 @@ import java.util.Map;
 
 @Component
 @RequiredArgsConstructor
-public class EmailFactoryImpl implements EmailFactory {
+public class DefaultEmailFactory implements EmailFactory {
     private final PasswordRecoveryEmail passwordRecoveryEmail;
 
     @Override

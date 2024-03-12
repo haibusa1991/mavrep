@@ -22,6 +22,14 @@ import org.springframework.stereotype.Component;
 import static io.vavr.API.*;
 import static io.vavr.Predicates.instanceOf;
 
+/**
+ * A {@link LoginOperation} implementation. Validates the user's credentials and returns a JWT token if the credentials
+ * are valid. Returns the following errors:
+ * <ul>
+ *     <li>{@link InvalidCredentialsError} if the user's credentials are invalid or user account is disabled</li>
+ *     <li>{@link ServiceUnavailableError} if the database is not available</li>
+ * </ul>
+ */
 @Component
 @RequiredArgsConstructor
 public class LoginCore implements LoginOperation {
