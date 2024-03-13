@@ -2,6 +2,7 @@ package com.personal.microart.core.scheduling.tasks;
 
 import com.personal.microart.core.scheduling.base.ScheduledTask;
 import lombok.RequiredArgsConstructor;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 /**
@@ -11,6 +12,7 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class InvalidPasswordRecoveryTokensDeleter implements ScheduledTask {
     @Override
+    @Scheduled(cron = "0 0 2 * * *")
     public void runScheduledTask() {
 
     }
