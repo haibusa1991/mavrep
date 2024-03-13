@@ -20,4 +20,6 @@ public interface ArtefactRepository extends JpaRepository<Artefact, UUID> {
 
     Set<Artefact> findAllByFilename(String filename);
 
+    Boolean deleteAllByFilename(String filename);
+
 }
