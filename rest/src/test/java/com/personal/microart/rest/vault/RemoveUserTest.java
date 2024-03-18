@@ -310,4 +310,42 @@ public class RemoveUserTest {
 
         assertEquals(2, vault.getAuthorizedUsers().size());
     }
+
+    @SneakyThrows
+    @Test
+    public void returns400WhenOwnerRemovesAllUsersFromExistingVault() {
+        String uri = String.format(this.URI_TEMPLATE, this.EXISTING_VAULT_1);
+
+        Vault vault1 = this.vaultRepository.findAll().get(0);
+        vault1.removeUser(this.EXISTING_USER_2);
+        this.vaultRepository.save(vault1);
+
+        HttpServerExchange httpServerExchange = mock(HttpServerExchange.class);
+        when(this.exchangeAccessor.getExchange(any())).thenReturn(httpServerExchange);
+        when(httpServerExchange.setReasonPhrase(any(String.class))).thenReturn(httpServerExchange);
+        when(httpServerExchange.getRequestURI()).thenReturn(uri);
+
+        RemoveUserInput input = RemoveUserInput
+                .builder()
+                .username(this.EXISTING_USERNAME_1)
+                .build();
+
+        String content = this.objectMapper
+                .setSerializationInclusion(JsonInclude.Include.NON_NULL)
+                .writeValueAsString(input);
+
+        this.mockMvc.perform(MockMvcRequestBuilders
+                        .delete(uri)
+                        .header(HttpHeaders.AUTHORIZATION, this.getAuthHeaderValue(this.EXISTING_USER_1))
+                        .content(content)
+                        .contentType("application/json"))
+                .andExpect(status().isBadRequest());
+
+        Vault vault = this.vaultRepository
+                .findAll()
+                .get(0);
+
+        assertEquals(1, vault.getAuthorizedUsers().size());
+        assertEquals(this.EXISTING_USER_1, vault.getAuthorizedUsers().iterator().next());
+    }
 }
