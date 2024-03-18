@@ -8,6 +8,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import lombok.experimental.Accessors;
 import org.hibernate.validator.constraints.Length;
 
 import java.util.UUID;
@@ -53,6 +54,7 @@ public class MicroartUser {
     @Setter
     private String password;
 
+    @Accessors(fluent = true)
     private Boolean enabled;
 
     private MicroartUser enableUser() {
