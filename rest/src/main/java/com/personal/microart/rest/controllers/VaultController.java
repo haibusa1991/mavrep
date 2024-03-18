@@ -17,6 +17,8 @@ import com.personal.microart.api.operations.user.verifypassordresettoken.VerifyP
 import com.personal.microart.api.operations.user.verifypassordresettoken.VerifyPasswordResetTokenOperation;
 import com.personal.microart.api.operations.vault.adduser.AddUserInput;
 import com.personal.microart.api.operations.vault.adduser.AddUserOperation;
+import com.personal.microart.api.operations.vault.removeuser.RemoveUserInput;
+import com.personal.microart.api.operations.vault.removeuser.RemoveUserOperation;
 import com.personal.microart.core.processor.ProcessorInputValidator;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.vavr.control.Either;
@@ -41,6 +43,7 @@ public class VaultController extends BaseController {
     private final ProcessorInputValidator inputValidator;
     private final ExchangeAccessor exchangeAccessor;
     private final AddUserOperation addUser;
+    private final RemoveUserOperation removeUser;
 
     @PostConstruct
     private void setExchangeAccessor() {
@@ -67,6 +70,29 @@ public class VaultController extends BaseController {
         return validationResult.isLeft()
                 ? this.handle(validationResult, response)
                 : this.handle(this.addUser.process(input), response, HttpStatus.CREATED);
+    }
+
+
+    /**
+     * Removes a user from the list of authorized users of a vault
+     */
+    @DeleteMapping(path = "/{vaultName}/user")
+    @ResponseBody
+    public ResponseEntity<?> removeAuthorizedUser(@RequestBody RemoveUserInput userInput,
+                                                  @PathVariable String vaultName,
+                                                  HttpServletResponse response) {
+
+        RemoveUserInput input = RemoveUserInput
+                .builder()
+                .vaultName(vaultName)
+                .username(userInput.getUsername())
+                .build();
+
+        Either<ApiError, ProcessorInput> validationResult = this.inputValidator.validateInput(input);
+
+        return validationResult.isLeft()
+                ? this.handle(validationResult, response)
+                : this.handle(this.removeUser.process(input), response, HttpStatus.NO_CONTENT);
     }
 
 

@@ -1,9 +1,8 @@
-package com.personal.microart.api.operations.vault.adduser;
+package com.personal.microart.api.operations.vault.removeuser;
 
 
 import com.personal.microart.api.base.Processor;
 //TODO: update documentation
-
 /**
  * The LoginOperation is processes the login request required for all front end related operations. Validates that the user
  * exists, is not disabled and the password is correct. Generates a JWT and returns it in a response object. The user
@@ -15,12 +14,12 @@ import com.personal.microart.api.base.Processor;
  */
 
 /**
- * The AddUserOperation adds a user to the list of authorized users of a vault. User must be existing and not disabled.
- * Only owners of the vault can add users. Returns the following errors:
+ * The RemoveUserOperation removes a user from the list of authorized users of a vault. User must be existing.
+ * Only vault owners can add users. Returns the following errors:
  * <ul>
  *     <li>TODO: Add errors</li>
  * </ul>
  */
-public interface AddUserOperation extends Processor<AddUserResult, AddUserInput> {
+public interface RemoveUserOperation extends Processor<RemoveUserResult, RemoveUserInput> {
 
 }
