@@ -21,14 +21,16 @@ public class Vault {
         this.authorizedUsers = new HashSet<>();
         this.authorizedUsers.add(user);
         this.isPublic = true;
+        this.owner = user;
     }
 
-    public static Vault empty () {
+    public static Vault empty() {
         Vault vault = new Vault();
         vault.name = "";
         vault.artefacts = new ArrayList<>();
         vault.authorizedUsers = new HashSet<>();
         vault.isPublic = true;
+        vault.owner = MicroartUser.empty();
 
         return vault;
     }
@@ -53,6 +55,9 @@ public class Vault {
 
     @ManyToMany(fetch = FetchType.EAGER)
     private Set<MicroartUser> authorizedUsers;
+
+    @ManyToOne
+    private MicroartUser owner;
 
     @Setter
     @Accessors(fluent = true)
