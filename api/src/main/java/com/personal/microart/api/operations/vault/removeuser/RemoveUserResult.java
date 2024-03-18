@@ -1,4 +1,4 @@
-package com.personal.microart.api.operations.vault.adduser;
+package com.personal.microart.api.operations.vault.removeuser;
 
 import com.personal.microart.api.base.ProcessorResult;
 import lombok.*;
@@ -7,5 +7,5 @@ import lombok.*;
 @Setter(AccessLevel.PRIVATE)
 @Builder
 @AllArgsConstructor
-public class AddUserResult implements ProcessorResult {
+public class RemoveUserResult implements ProcessorResult {
 }
