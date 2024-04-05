@@ -2,22 +2,11 @@ package com.personal.microart.api.operations.vault.create;
 
 
 import com.personal.microart.api.base.Processor;
-//TODO: update documentation
-
 /**
- * The LoginOperation is processes the login request required for all front end related operations. Validates that the user
- * exists, is not disabled and the password is correct. Generates a JWT and returns it in a response object. The user
- * controller is responsible for setting the JWT in the response header. Returns the following errors:
+ * The CreateVaultOperation creates a new vault for the current user. The owner is added as an authorized user. Returns the following errors:
  * <ul>
- *     <li>{@link com.personal.microart.api.errors.InvalidCredentialsError InvalidCredentialsError} if the credentials are not valid</li>
- *     <li>{@link com.personal.microart.api.errors.ServiceUnavailableError ServiceUnavailableError} if the user could not be retrieved from the database</li>
- * </ul>
- */
-
-/**
- * The CreateVaultOperation creates a new vault. The owner is added as an authorized user. Returns the following errors:
- * <ul>
- *     <li>TODO: Add errors</li>
+ *      <li>{@link com.personal.microart.api.errors.DuplicateVaultNameError DuplicateVaultNameError} if a vault with the same name already exists</li>
+ *      <li>{@link com.personal.microart.api.errors.ServiceUnavailableError ServiceUnavailableError} if the vault cannot be saved to database</li>
  * </ul>
  */
 public interface CreateVaultOperation extends Processor<CreateVaultResult, CreateVaultInput> {
