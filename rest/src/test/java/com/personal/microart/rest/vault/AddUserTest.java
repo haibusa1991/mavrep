@@ -106,7 +106,7 @@ public class AddUserTest {
         Vault vault1 = Vault
                 .builder()
                 .name(this.EXISTING_VAULT_1)
-                .user(this.EXISTING_USER_1)
+                .owner(this.EXISTING_USER_1)
                 .build();
 
         this.vaultRepository.save(vault1);

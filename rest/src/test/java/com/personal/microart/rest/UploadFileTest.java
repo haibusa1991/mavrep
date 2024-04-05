@@ -164,7 +164,7 @@ class UploadFileTest {
 
         Vault vault = Vault
                 .builder()
-                .user(this.userRepository.findByUsername(this.EXISTING_USERNAME).get())
+                .owner(this.userRepository.findByUsername(this.EXISTING_USERNAME).get())
                 .name(this.EXISTING_VAULT)
                 .build();
 
@@ -206,7 +206,7 @@ class UploadFileTest {
 
         Vault vault = Vault
                 .builder()
-                .user(this.userRepository.findByUsername(this.EXISTING_USERNAME).get())
+                .owner(this.userRepository.findByUsername(this.EXISTING_USERNAME).get())
                 .name(this.EXISTING_VAULT)
                 .build();
 
@@ -243,7 +243,7 @@ class UploadFileTest {
 
         Vault vault = Vault
                 .builder()
-                .user(this.userRepository.findByUsername(this.EXISTING_USERNAME).get())
+                .owner(this.userRepository.findByUsername(this.EXISTING_USERNAME).get())
                 .name(this.EXISTING_VAULT)
                 .build();
 
@@ -334,7 +334,7 @@ class UploadFileTest {
 
         Vault vault = Vault
                 .builder()
-                .user(this.userRepository.findByUsername(this.EXISTING_USERNAME).get())
+                .owner(this.userRepository.findByUsername(this.EXISTING_USERNAME).get())
                 .name(this.EXISTING_VAULT)
                 .build();
 
@@ -372,7 +372,7 @@ class UploadFileTest {
 
         Vault vault = Vault
                 .builder()
-                .user(this.userRepository.findByUsername(this.EXISTING_USERNAME).get())
+                .owner(this.userRepository.findByUsername(this.EXISTING_USERNAME).get())
                 .name(this.EXISTING_VAULT)
                 .build();
 
@@ -465,7 +465,7 @@ class UploadFileTest {
 
         Vault vault = Vault
                 .builder()
-                .user(this.userRepository.findByUsername(this.EXISTING_USERNAME).get())
+                .owner(this.userRepository.findByUsername(this.EXISTING_USERNAME).get())
                 .name(this.EXISTING_VAULT)
                 .build();
 

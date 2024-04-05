@@ -15,13 +15,13 @@ import java.util.*;
 public class Vault {
 
     @Builder
-    public Vault(String name, MicroartUser user) {
+    public Vault(String name, MicroartUser owner) {
         this.name = name;
         this.artefacts = new ArrayList<>();
         this.authorizedUsers = new HashSet<>();
-        this.authorizedUsers.add(user);
+        this.authorizedUsers.add(owner);
         this.isPublic = true;
-        this.owner = user;
+        this.owner = owner;
     }
 
     public static Vault empty() {

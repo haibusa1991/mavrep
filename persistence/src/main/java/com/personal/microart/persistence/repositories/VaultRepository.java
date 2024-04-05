@@ -12,7 +12,7 @@ public interface VaultRepository extends JpaRepository<Vault, UUID> {
 
     Optional<Vault> findVaultByName(String name);
 
-    Boolean existsByName(String name);
+    Boolean existsByNameAndAndOwner(String name, MicroartUser owner);
 
     Set<Vault> findAllByIsPublicTrue();
 
