@@ -107,7 +107,7 @@ class DownloadFileTest {
         Vault vault = Vault
                 .builder()
                 .name(this.EXISTING_VAULT)
-                .user(persistedUser)
+                .owner(persistedUser)
                 .build();
 
         Artefact artefact = Artefact

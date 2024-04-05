@@ -103,7 +103,7 @@ public class RemoveUserTest {
         Vault vault = Vault
                 .builder()
                 .name(this.EXISTING_VAULT_1)
-                .user(this.EXISTING_USER_1)
+                .owner(this.EXISTING_USER_1)
                 .build();
 
         vault.addUser(this.EXISTING_USER_2);

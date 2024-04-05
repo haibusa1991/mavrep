@@ -138,7 +138,7 @@ class BrowseTest {
         Vault vault1 = Vault
                 .builder()
                 .name(this.EXISTING_VAULT_1)
-                .user(this.EXISTING_USER_1)
+                .owner(this.EXISTING_USER_1)
                 .build();
         Artefact artefact1 = this.artefactRepository.save(Artefact
                 .builder()
@@ -150,7 +150,7 @@ class BrowseTest {
         Vault vault2 = Vault
                 .builder()
                 .name(this.EXISTING_VAULT_2)
-                .user(this.EXISTING_USER_1)
+                .owner(this.EXISTING_USER_1)
                 .build();
 
         vault2.isPublic(false);
@@ -167,7 +167,7 @@ class BrowseTest {
         Vault vault3 = Vault
                 .builder()
                 .name(this.EXISTING_VAULT_3)
-                .user(this.EXISTING_USER_2)
+                .owner(this.EXISTING_USER_2)
                 .build();
 
         vault3.isPublic(false);

@@ -117,7 +117,7 @@ public class UploadFileCore implements UploadFileOperation {
         return Try.of(() -> {
                     Vault vault = this.vaultRepository
                             .findVaultByName(vaultName)
-                            .orElseGet(() -> this.vaultRepository.save(Vault.builder().name(vaultName).user(user).build()));
+                            .orElseGet(() -> this.vaultRepository.save(Vault.builder().name(vaultName).owner(user).build()));
 
                     this.artefactRepository
                             .findArtefactByUri(input.getUri())
