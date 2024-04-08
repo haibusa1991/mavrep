@@ -30,12 +30,13 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
+import static com.personal.microart.rest.Endpoints.*;
+
 /**
  * A controller that is responsible for handling requests related to user accounts - registration, login, password reset, etc.
  */
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/user")
 public class UserController extends BaseController {
 
     private final ProcessorInputValidator inputValidator;
@@ -52,7 +53,7 @@ public class UserController extends BaseController {
         super.setExchangeAccessor(exchangeAccessor);
     }
 
-    @PostMapping(path = "/register")
+    @PostMapping(path = USER_REGISTER)
     @ResponseBody
     public ResponseEntity<?> register(@RequestBody RegisterInput input, HttpServletResponse response) {
 
@@ -63,7 +64,7 @@ public class UserController extends BaseController {
                 : this.handle(this.register.process(input), response, HttpStatus.CREATED);
     }
 
-    @PostMapping(path = "/login")
+    @PostMapping(path = USER_LOGIN)
     public ResponseEntity<?> login(@RequestBody LoginInput input, HttpServletResponse response) {
 
         Either<ApiError, ProcessorInput> validationResult = this.inputValidator.validateInput(input);
@@ -81,7 +82,7 @@ public class UserController extends BaseController {
         return this.handle(loginAttempt, response);
     }
 
-    @PostMapping(path = "/request-password")
+    @PostMapping(path = USER_REQUEST_PASSWORD)
     public ResponseEntity<?> requestPassword(@RequestBody RequestPasswordInput input, HttpServletResponse response) {
 
         Either<ApiError, ProcessorInput> validationResult = this.inputValidator.validateInput(input);
@@ -91,8 +92,8 @@ public class UserController extends BaseController {
                 : this.handle(this.requestPassword.process(input), response);
     }
 
-    @GetMapping(path = "/password-reset")
-    public ResponseEntity<?> passwordResetVerify(@RequestParam("token") String passwordResetToken, HttpServletResponse response) {
+    @GetMapping(path = USER_RESET_PASSWORD)
+    public ResponseEntity<?> passwordResetVerify(@RequestParam String passwordResetToken, HttpServletResponse response) {
 
         VerifyPasswordResetTokenInput input = VerifyPasswordResetTokenInput
                 .builder()
@@ -106,8 +107,8 @@ public class UserController extends BaseController {
                 : this.handle(this.verifyPasswordResetToken.process(input), response, HttpStatus.NO_CONTENT);
     }
 
-    @PostMapping(path = "/password-reset")
-    public ResponseEntity<?> passwordReset(@RequestParam("token") String passwordResetToken,
+    @PostMapping(path = USER_RESET_PASSWORD)
+    public ResponseEntity<?> passwordReset(@RequestParam String passwordResetToken,
                                            @RequestBody ResetPasswordInput rawInput,
                                            HttpServletResponse response) {
 
@@ -124,7 +125,7 @@ public class UserController extends BaseController {
     }
 
     @SecurityRequirement(name = "Authorization")
-    @PostMapping(path = "/logout")
+    @PostMapping(path = USER_LOGOUT)
     public ResponseEntity<?> logout(HttpServletRequest request, HttpServletResponse response) {
         LogoutInput input = LogoutInput
                 .builder()

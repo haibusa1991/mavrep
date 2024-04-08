@@ -8,16 +8,16 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
+
+import static com.personal.microart.rest.Endpoints.BROWSE_FILES;
 
 /**
  * A controller that is responsible for handling all browse requests.
  */
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/browse")
 public class BrowserController extends BaseController {
 
     private final BrowseCore browse;
@@ -28,7 +28,7 @@ public class BrowserController extends BaseController {
         this.setExchangeAccessor(exchangeAccessor);
     }
 
-    @GetMapping(path = "/**")
+    @GetMapping(path = BROWSE_FILES)
     @ResponseBody
     public ResponseEntity<?> get(HttpServletRequest request, HttpServletResponse response) {
 

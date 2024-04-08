@@ -9,13 +9,14 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import static com.personal.microart.rest.Endpoints.TEST_JWT;
+
 /**
  * A controller that handles test requests.
  */
 @Profile("test")
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/test")
 public class TestController extends BaseController {
     private final ExchangeAccessor exchangeAccessor;
 
@@ -25,7 +26,7 @@ public class TestController extends BaseController {
     }
 
     //Should return hello world. Test whether a jwt auth is ok
-    @GetMapping(path = "/jwt-auth")
+    @GetMapping(path = TEST_JWT)
     @PreAuthorize("hasRole('USER')")
     public ResponseEntity<?> register() {
         return ResponseEntity.ok("Hello World");

@@ -33,13 +33,14 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import static com.personal.microart.rest.Endpoints.*;
+
 /**
  * A controller that is responsible for handling requests related to vaults and authorized vault users -
  * creating, updating, deleting vaults, adding and removing users from vaults, and managing user rights to vaults.
  */
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/vault")
 public class VaultController extends BaseController {
 
     private final ProcessorInputValidator inputValidator;
@@ -56,7 +57,7 @@ public class VaultController extends BaseController {
     /**
      * Adds a user to the list of authorized users of a vault
      */
-    @PostMapping(path = "/{vaultName}/user")
+    @PostMapping(path = MODIFY_VAULT_AUTH_USER)
     @ResponseBody
     public ResponseEntity<?> addAuthorizedUser(@RequestBody AddUserInput userInput,
                                                @PathVariable String vaultName,
@@ -79,7 +80,7 @@ public class VaultController extends BaseController {
     /**
      * Removes a user from the list of authorized users of a vault
      */
-    @DeleteMapping(path = "/{vaultName}/user")
+    @DeleteMapping(path = MODIFY_VAULT_AUTH_USER)
     @ResponseBody
     public ResponseEntity<?> removeAuthorizedUser(@RequestBody RemoveUserInput userInput,
                                                   @PathVariable String vaultName,
@@ -98,7 +99,7 @@ public class VaultController extends BaseController {
                 : this.handle(this.removeUser.process(input), response, HttpStatus.NO_CONTENT);
     }
 
-    @PostMapping
+    @PostMapping(path = VAULT)
     @ResponseBody
     public ResponseEntity<?> createVault(@RequestBody CreateVaultInput input, HttpServletResponse response) {
         Either<ApiError, ProcessorInput> validationResult = this.inputValidator.validateInput(input);

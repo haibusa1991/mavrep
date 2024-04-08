@@ -14,12 +14,14 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
+import static com.personal.microart.rest.Endpoints.FILE_DOWNLOAD;
+import static com.personal.microart.rest.Endpoints.FILE_UPLOAD;
+
 /**
  * A controller that is responsible for handling file upload and download requests.
  */
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/mvn")
 public class FileController extends BaseController {
     private final UploadFileOperation uploadFile;
     private final DownloadFileOperation downloadFile;
@@ -30,7 +32,7 @@ public class FileController extends BaseController {
         super.setExchangeAccessor(exchangeAccessor);
     }
 
-    @GetMapping(path = "/**", produces = MediaType.APPLICATION_OCTET_STREAM_VALUE)
+    @GetMapping(path = FILE_DOWNLOAD, produces = MediaType.APPLICATION_OCTET_STREAM_VALUE)
     @ResponseBody
     public ResponseEntity<?> get(HttpServletRequest request, HttpServletResponse response) {
 
@@ -43,7 +45,7 @@ public class FileController extends BaseController {
         return this.handleMvn(this.downloadFile.process(input), response);
     }
 
-    @PutMapping(path = "/**")
+    @PutMapping(path = FILE_UPLOAD)
     public ResponseEntity<?> put(@RequestBody byte[] content, HttpServletRequest request, HttpServletResponse response) {
 
         UploadFileInput input = UploadFileInput
