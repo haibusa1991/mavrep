@@ -19,6 +19,8 @@ import com.personal.microart.api.operations.vault.adduser.AddUserInput;
 import com.personal.microart.api.operations.vault.adduser.AddUserOperation;
 import com.personal.microart.api.operations.vault.create.CreateVaultInput;
 import com.personal.microart.api.operations.vault.create.CreateVaultOperation;
+import com.personal.microart.api.operations.vault.delete.DeleteVaultInput;
+import com.personal.microart.api.operations.vault.delete.DeleteVaultOperation;
 import com.personal.microart.api.operations.vault.removeuser.RemoveUserInput;
 import com.personal.microart.api.operations.vault.removeuser.RemoveUserOperation;
 import com.personal.microart.core.processor.ProcessorInputValidator;
@@ -48,6 +50,7 @@ public class VaultController extends BaseController {
     private final AddUserOperation addUser;
     private final RemoveUserOperation removeUser;
     private final CreateVaultOperation createVault;
+    private final DeleteVaultOperation deleteVault;
 
     @PostConstruct
     private void setExchangeAccessor() {
@@ -100,7 +103,6 @@ public class VaultController extends BaseController {
     }
 
     @PostMapping(path = VAULT)
-    @ResponseBody
     public ResponseEntity<?> createVault(@RequestBody CreateVaultInput input, HttpServletResponse response) {
         Either<ApiError, ProcessorInput> validationResult = this.inputValidator.validateInput(input);
 
@@ -109,5 +111,13 @@ public class VaultController extends BaseController {
                 : this.handle(this.createVault.process(input), response, HttpStatus.CREATED);
     }
 
+    @DeleteMapping(path = VAULT)
+    public ResponseEntity<?> deleteVault(@RequestBody DeleteVaultInput input, HttpServletResponse response) {
+        Either<ApiError, ProcessorInput> validationResult = this.inputValidator.validateInput(input);
+
+        return validationResult.isLeft()
+                ? this.handle(validationResult, response)
+                : this.handle(this.deleteVault.process(input), response, HttpStatus.NO_CONTENT);
+    }
 
 }
