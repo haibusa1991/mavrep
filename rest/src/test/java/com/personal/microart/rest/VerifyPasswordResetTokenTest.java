@@ -58,7 +58,7 @@ public class VerifyPasswordResetTokenTest {
     @SpyBean
     private PasswordRecoveryTokenRepository passwordRecoveryTokenRepository;
 
-    private final String URI = "/user/password-reset?token=";
+    private final String URI = "/user/password-reset?passwordResetToken=";
     private final String USER_EMAIL = "test@test.bg";
     private final String USER_PASSWORD = "password";
     private final String USER_USERNAME = "mytestuser";

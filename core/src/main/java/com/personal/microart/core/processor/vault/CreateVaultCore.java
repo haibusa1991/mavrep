@@ -3,7 +3,6 @@ package com.personal.microart.core.processor.vault;
 import com.personal.microart.api.errors.ApiError;
 import com.personal.microart.api.errors.DuplicateVaultNameError;
 import com.personal.microart.api.errors.ServiceUnavailableError;
-import com.personal.microart.api.errors.UnauthorizedError;
 import com.personal.microart.api.operations.vault.create.CreateVaultInput;
 import com.personal.microart.api.operations.vault.create.CreateVaultOperation;
 import com.personal.microart.api.operations.vault.create.CreateVaultResult;
@@ -14,7 +13,6 @@ import io.vavr.API;
 import io.vavr.Tuple;
 import io.vavr.Tuple2;
 import io.vavr.control.Either;
-import io.vavr.control.Option;
 import io.vavr.control.Try;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -41,7 +39,7 @@ public class CreateVaultCore implements CreateVaultOperation {
         return Try.of(() -> {
                     MicroartUser user = (MicroartUser) SecurityContextHolder.getContext().getAuthentication().getDetails();
 
-                    if (this.vaultRepository.existsByNameAndAndOwner(vaultName, user)) {
+                    if (this.vaultRepository.existsByNameAndOwner(vaultName, user)) {
                         throw new IllegalArgumentException();
                     }
 
