@@ -3,6 +3,7 @@ package com.personal.microart.core.scheduling.tasks;
 import com.personal.microart.core.scheduling.base.ScheduledTask;
 import com.personal.microart.persistence.entities.Artefact;
 import com.personal.microart.persistence.repositories.ArtefactRepository;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
@@ -19,6 +20,7 @@ public class OrphanedFileRecordsDeleter implements ScheduledTask {
 
     @Override
     @Scheduled(cron = "0 0 2 * * *")
+    @Transactional
     public void runScheduledTask() {
         this.artefactRepository.deleteAllByFilename(null);
     }

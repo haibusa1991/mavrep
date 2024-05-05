@@ -35,4 +35,16 @@ public class Artefact {
 
     private LocalDateTime timestamp;
 
+    @Override
+    public final boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof Artefact artefact)) return false;
+
+        return id.equals(artefact.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return id.hashCode();
+    }
 }
