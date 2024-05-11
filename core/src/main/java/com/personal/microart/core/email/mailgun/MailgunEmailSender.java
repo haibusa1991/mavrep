@@ -28,10 +28,10 @@ public class MailgunEmailSender implements EmailSender {
     @Value("${MAILGUN_API_KEY}")
     private String apiKey;
 
-    @Value("${MAILGUN_DOMAIN}")
+    @Value("${MAILGUN_SENDER_DOMAIN}")
     private String domain;
 
-    @Value("${MAILGUN_URL}")
+    @Value("${MAILGUN_SENDER_URL}")
     private String url;
 
     /**
