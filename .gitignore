@@ -11,3 +11,4 @@
 /rest/.flattened-pom.xml
 /validation/.flattened-pom.xml
 /.flattened-pom.xml
+/rest/src/main/resources/application-local.properties
